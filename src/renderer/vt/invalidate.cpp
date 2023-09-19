@@ -69,9 +69,9 @@ CATCH_RETURN();
     // We should ignore the first one, but after that, if the client application
     //      is moving the cursor around in the viewport, move our virtual top
     //      up to meet their changes.
-    if (!_skipCursor && _virtualTop > psrRegion->Top)
+    if (!_skipCursor && _virtualTop > psrRegion->top)
     {
-        _virtualTop = psrRegion->Top;
+        _virtualTop = psrRegion->top;
     }
     _skipCursor = false;
 
@@ -119,6 +119,10 @@ CATCH_RETURN();
         //      end paint to specifically handle this.
         _circled = circled;
     }
+
+    // If we flushed for any reason other than circling (i.e, a sequence that we
+    // didn't understand), we don't need to push the buffer out on EndPaint.
+    _noFlushOnEnd = !circled;
 
     _trace.TraceTriggerCircling(*pForcePaint);
 

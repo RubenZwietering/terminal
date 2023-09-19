@@ -41,6 +41,8 @@ public:
 
     std::optional<uint32_t> GetPersistedLayoutIdx() const noexcept;
     std::optional<winrt::Microsoft::Terminal::Settings::Model::LaunchMode> GetLaunchMode() const noexcept;
+    std::optional<winrt::Microsoft::Terminal::Settings::Model::LaunchPosition> GetPosition() const noexcept;
+    std::optional<til::size> GetSize() const noexcept;
 
     int ParseArgs(const winrt::Microsoft::Terminal::Settings::Model::ExecuteCommandlineArgs& args);
     void DisableHelpInExitMessage();
@@ -65,6 +67,7 @@ private:
         CLI::Option* tabColorOption;
         CLI::Option* suppressApplicationTitleOption;
         CLI::Option* colorSchemeOption;
+        CLI::Option* appendCommandLineOption;
     };
 
     struct NewPaneSubcommand : public NewTerminalSubcommand
@@ -103,6 +106,7 @@ private:
 
     // _commandline will contain the command line with which we'll be spawning a new terminal
     std::vector<std::string> _commandline;
+    bool _appendCommandLineOption{ false };
 
     bool _splitVertical{ false };
     bool _splitHorizontal{ false };
@@ -119,6 +123,8 @@ private:
 
     const Commandline* _currentCommandline{ nullptr };
     std::optional<winrt::Microsoft::Terminal::Settings::Model::LaunchMode> _launchMode{ std::nullopt };
+    std::optional<winrt::Microsoft::Terminal::Settings::Model::LaunchPosition> _position{ std::nullopt };
+    std::optional<til::size> _size{ std::nullopt };
     bool _isHandoffListener{ false };
     std::vector<winrt::Microsoft::Terminal::Settings::Model::ActionAndArgs> _startupActions;
     std::string _exitMessage;

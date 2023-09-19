@@ -61,7 +61,7 @@ namespace Microsoft::Console::Render
         [[nodiscard]] HRESULT ResetLineTransform() noexcept override;
         [[nodiscard]] HRESULT PrepareLineTransform(const LineRendition lineRendition, const til::CoordType targetRow, const til::CoordType viewportLeft) noexcept override;
         [[nodiscard]] HRESULT PaintBackground() noexcept override;
-        [[nodiscard]] HRESULT PaintBufferLine(gsl::span<const Cluster> clusters, til::point coord, bool fTrimLeft, bool lineWrapped) noexcept override;
+        [[nodiscard]] HRESULT PaintBufferLine(std::span<const Cluster> clusters, til::point coord, bool fTrimLeft, bool lineWrapped) noexcept override;
         [[nodiscard]] HRESULT PaintBufferGridLines(GridLineSet lines, COLORREF color, size_t cchLine, til::point coordTarget) noexcept override;
         [[nodiscard]] HRESULT PaintSelection(const til::rect& rect) noexcept override;
         [[nodiscard]] HRESULT PaintCursor(const CursorOptions& options) noexcept override;
@@ -69,7 +69,7 @@ namespace Microsoft::Console::Render
         [[nodiscard]] HRESULT UpdateDpi(int iDpi) noexcept override;
         [[nodiscard]] HRESULT UpdateViewport(const til::inclusive_rect& srNewViewport) noexcept override;
         [[nodiscard]] HRESULT GetProposedFont(const FontInfoDesired& FontInfoDesired, _Out_ FontInfo& FontInfo, int iDpi) noexcept override;
-        [[nodiscard]] HRESULT GetDirtyArea(gsl::span<const til::rect>& area) noexcept override;
+        [[nodiscard]] HRESULT GetDirtyArea(std::span<const til::rect>& area) noexcept override;
         [[nodiscard]] HRESULT GetFontSize(_Out_ til::size* pFontSize) noexcept override;
         [[nodiscard]] HRESULT IsGlyphWideByFont(std::wstring_view glyph, _Out_ bool* pResult) noexcept override;
 
@@ -127,7 +127,6 @@ namespace Microsoft::Console::Render
         bool _newBottomLine;
         til::point _deferredCursorPos;
 
-        bool _pipeBroken;
         HRESULT _exitResult;
         Microsoft::Console::VirtualTerminal::VtIo* _terminalOwner;
 
@@ -140,6 +139,7 @@ namespace Microsoft::Console::Render
 
         bool _resizeQuirk{ false };
         bool _passthrough{ false };
+        bool _noFlushOnEnd{ false };
         std::optional<TextColor> _newBottomLineBG{ std::nullopt };
 
         [[nodiscard]] HRESULT _WriteFill(const size_t n, const char c) noexcept;
@@ -182,6 +182,10 @@ namespace Microsoft::Console::Render
                                                             const bool fIsForeground) noexcept;
         [[nodiscard]] HRESULT _SetGraphicsRenditionDefaultColor(const bool fIsForeground) noexcept;
 
+        [[nodiscard]] HRESULT _SetGraphicsRenditionUnderline256Color(const BYTE index) noexcept;
+        [[nodiscard]] HRESULT _SetGraphicsRenditionUnderlineRGBColor(const COLORREF color) noexcept;
+        [[nodiscard]] HRESULT _SetGraphicsRenditionUnderlineDefaultColor() noexcept;
+
         [[nodiscard]] HRESULT _SetGraphicsDefault() noexcept;
 
         [[nodiscard]] HRESULT _ResizeWindow(const til::CoordType sWidth, const til::CoordType sHeight) noexcept;
@@ -189,7 +193,7 @@ namespace Microsoft::Console::Render
         [[nodiscard]] HRESULT _SetIntense(const bool isIntense) noexcept;
         [[nodiscard]] HRESULT _SetFaint(const bool isFaint) noexcept;
         [[nodiscard]] HRESULT _SetUnderlined(const bool isUnderlined) noexcept;
-        [[nodiscard]] HRESULT _SetDoublyUnderlined(const bool isUnderlined) noexcept;
+        [[nodiscard]] HRESULT _SetUnderlineExtended(const UnderlineStyle style) noexcept;
         [[nodiscard]] HRESULT _SetOverlined(const bool isOverlined) noexcept;
         [[nodiscard]] HRESULT _SetItalic(const bool isItalic) noexcept;
         [[nodiscard]] HRESULT _SetBlinking(const bool isBlinking) noexcept;
@@ -217,18 +221,18 @@ namespace Microsoft::Console::Render
         // buffer space for these two functions to build their lines
         // so they don't have to alloc/free in a tight loop
         std::wstring _bufferLine;
-        [[nodiscard]] HRESULT _PaintUtf8BufferLine(const gsl::span<const Cluster> clusters,
+        [[nodiscard]] HRESULT _PaintUtf8BufferLine(const std::span<const Cluster> clusters,
                                                    const til::point coord,
                                                    const bool lineWrapped) noexcept;
 
-        [[nodiscard]] HRESULT _PaintAsciiBufferLine(const gsl::span<const Cluster> clusters,
+        [[nodiscard]] HRESULT _PaintAsciiBufferLine(const std::span<const Cluster> clusters,
                                                     const til::point coord) noexcept;
 
         [[nodiscard]] HRESULT _WriteTerminalUtf8(const std::wstring_view str) noexcept;
         [[nodiscard]] HRESULT _WriteTerminalAscii(const std::wstring_view str) noexcept;
         [[nodiscard]] HRESULT _WriteTerminalDrcs(const std::wstring_view str) noexcept;
 
-        [[nodiscard]] virtual HRESULT _DoUpdateTitle(const std::wstring_view newTitle) noexcept override;
+        [[nodiscard]] HRESULT _DoUpdateTitle(const std::wstring_view newTitle) noexcept override;
 
         /////////////////////////// Unit Testing Helpers ///////////////////////////
 #ifdef UNIT_TESTING
