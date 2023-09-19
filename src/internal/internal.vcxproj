@@ -18,6 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\conint.h" />
+    <ClInclude Include="DarkMode.h" />
     <ClInclude Include="precomp.h" />
   </ItemGroup>
   <!-- Careful reordering these. Some default props (contained in these files) are order sensitive. -->

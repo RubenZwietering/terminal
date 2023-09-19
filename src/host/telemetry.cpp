@@ -54,18 +54,22 @@ Telemetry::Telemetry() :
     _uiQuickEditPasteProcUsed(0),
     _uiQuickEditPasteRawUsed(0)
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     time(&_tStartedAt);
     TraceLoggingRegister(g_hConhostV2EventTraceProvider);
     TraceLoggingWriteStart(_activity, "ActivityStart");
     // initialize wil tracelogging
     wil::SetResultLoggingCallback(&Tracing::TraceFailure);
+#endif
 }
 #pragma warning(pop)
 
 Telemetry::~Telemetry()
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     TraceLoggingWriteStop(_activity, "ActivityStop");
     TraceLoggingUnregister(g_hConhostV2EventTraceProvider);
+#endif
 }
 
 void Telemetry::SetUserInteractive()
@@ -195,6 +199,7 @@ void Telemetry::LogFindDialogNextClicked(const unsigned int uiStringLength, cons
 // Find dialog was closed, now send out the telemetry.
 void Telemetry::FindDialogClosed()
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     // clang-format off
 #pragma prefast(suppress: __WARNING_NONCONST_LOCAL, "Activity can't be const, since it's set to a random value on startup.")
     // clang-format on
@@ -212,6 +217,7 @@ void Telemetry::FindDialogClosed()
     _fpDirectionDownAverage = 0;
     _fpMatchCaseAverage = 0;
     _uiFindNextClickedTotal = 0;
+#endif
 }
 
 // Total up all the used VT100 codes and assign them to the last process that was attached.
@@ -219,6 +225,7 @@ void Telemetry::FindDialogClosed()
 // disconnect when the conhost process exits.  So we have to remember the last process that connected.
 void Telemetry::TotalCodesForPreviousProcess()
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     using namespace Microsoft::Console::VirtualTerminal;
     // Get the values even if we aren't recording the previously connected process, since we want to reset them to 0.
     auto _uiTimesUsedCurrent = TermTelemetry::Instance().GetAndResetTimesUsedCurrent();
@@ -234,6 +241,7 @@ void Telemetry::TotalCodesForPreviousProcess()
         // Don't total any more process connected telemetry, unless a new processes attaches that we want to gather.
         _iProcessConnectedCurrently = SIZE_MAX;
     }
+#endif
 }
 
 // Tries to find the process name amongst our previous process names by doing a binary search.
@@ -281,6 +289,7 @@ bool Telemetry::FindProcessName(const WCHAR* pszProcessName, _Out_ size_t* iPosi
 // Just save the name and count, and send the telemetry before the console exits.
 void Telemetry::LogProcessConnected(const HANDLE hProcess)
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     // This is a bit of processing, so don't do it for the 95% of machines that aren't being sampled.
     if (TraceLoggingProviderEnabled(g_hConhostV2EventTraceProvider, 0, MICROSOFT_KEYWORD_MEASURES))
     {
@@ -348,6 +357,9 @@ void Telemetry::LogProcessConnected(const HANDLE hProcess)
             }
         }
     }
+#else
+    (void)hProcess;
+#endif
 }
 
 // This Function sends final Trace log before session closes.
@@ -355,6 +367,7 @@ void Telemetry::LogProcessConnected(const HANDLE hProcess)
 // so we don't overwhelm our servers by sending a constant stream of telemetry while the console is being used.
 void Telemetry::WriteFinalTraceLog()
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     const auto& gci = Microsoft::Console::Interactivity::ServiceLocator::LocateGlobals().getConsoleInformation();
     const auto& renderSettings = gci.GetRenderSettings();
     // This is a bit of processing, so don't do it for the 95% of machines that aren't being sampled.
@@ -562,11 +575,13 @@ void Telemetry::WriteFinalTraceLog()
             }
         }
     }
+#endif
 }
 
 // These are legacy error messages with limited value, so don't send them back as telemetry.
 void Telemetry::LogRipMessage(_In_z_ const char* pszMessage, ...) const
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     // Code needed for passing variable parameters to the vsprintf function.
     va_list args;
     va_start(args, pszMessage);
@@ -587,6 +602,9 @@ void Telemetry::LogRipMessage(_In_z_ const char* pszMessage, ...) const
                                 "RipMessage",
                                 TraceLoggingString(szMessageEvaluated, "Message"));
     }
+#else
+    (void)pszMessage;
+#endif
 }
 
 bool Telemetry::IsUserInteractive()

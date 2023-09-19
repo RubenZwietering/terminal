@@ -588,13 +588,24 @@ BOOL HandleMouseEvent(const SCREEN_INFORMATION& ScreenInfo,
         Telemetry::Instance().SetUserInteractive();
     }
 
-    const auto pSelection = &Selection::Instance();
+    //if (Message == WM_MOUSEWHEEL)
+    //{
+    //    if (gci.Flags & CONSOLE_HAS_FOCUS)
+    //        MessageBox(NULL, TEXT("CONSOLE_HAS_FOCUS"), TEXT(""), NULL);
+    //    if (gci.Flags & CONSOLE_IGNORE_NEXT_MOUSE_INPUT)
+    //        MessageBox(NULL, TEXT("CONSOLE_IGNORE_NEXT_MOUSE_INPUT"), TEXT(""), NULL);
+    //    if (!(gci.Flags & (CONSOLE_HAS_FOCUS | CONSOLE_IGNORE_NEXT_MOUSE_INPUT)))
+    //        MessageBox(NULL, TEXT("WM_MOUSEWHEEL"), TEXT(""), NULL);
+    //}
 
+    const auto pSelection = &Selection::Instance();
+    /*
     if (!(gci.Flags & CONSOLE_HAS_FOCUS) && !pSelection->IsMouseButtonDown())
     {
         return TRUE;
     }
-
+    */
+    /*
     if (gci.Flags & CONSOLE_IGNORE_NEXT_MOUSE_INPUT)
     {
         // only reset on up transition
@@ -605,6 +616,7 @@ BOOL HandleMouseEvent(const SCREEN_INFORMATION& ScreenInfo,
         }
         return TRUE;
     }
+    */
 
     // https://msdn.microsoft.com/en-us/library/windows/desktop/ms645617(v=vs.85).aspx
     //  Important  Do not use the LOWORD or HIWORD macros to extract the x- and y-
@@ -845,7 +857,7 @@ BOOL HandleMouseEvent(const SCREEN_INFORMATION& ScreenInfo,
 
                     Clipboard::Instance().Paste();
                 }
-                gci.Flags |= CONSOLE_IGNORE_NEXT_MOUSE_INPUT;
+                // gci.Flags |= CONSOLE_IGNORE_NEXT_MOUSE_INPUT;
             }
         }
         else if (Message == WM_MBUTTONDOWN)

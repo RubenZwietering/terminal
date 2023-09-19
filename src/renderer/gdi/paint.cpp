@@ -733,11 +733,16 @@ bool GdiEngine::FontHasWesternScript(HDC hdc)
 
         for (auto r : cursorInvertRects)
         {
+            /* Does make sure cursor is always readable, but it does not invert the colors correctly and creates ugly artifacts
+            * FIXME: Perhaps solvable with saturation and value calculation?
             // Make sure the cursor is always readable (see gh-3647)
             const auto PrevObject = SelectObject(_hdcMemoryContext, GetStockObject(LTGRAY_BRUSH));
             const auto Result = PatBlt(_hdcMemoryContext, r.left, r.top, r.right - r.left, r.bottom - r.top, PATINVERT);
             SelectObject(_hdcMemoryContext, PrevObject);
             RETURN_HR_IF(E_FAIL, !Result);
+            */
+
+            RETURN_HR_IF(E_FAIL, !InvertRect(_hdcMemoryContext, &r));
         }
     }
 

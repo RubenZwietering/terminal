@@ -32,21 +32,25 @@ TermTelemetry::TermTelemetry() noexcept :
     _activityId(),
     _fShouldWriteFinalLog(false)
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     TraceLoggingRegister(g_hConsoleVirtTermParserEventTraceProvider);
 
     // Create a random activityId just in case it doesn't get set later in SetActivityId().
     EventActivityIdControl(EVENT_ACTIVITY_CTRL_CREATE_ID, &_activityId);
+#endif
 }
 #pragma warning(pop)
 
 TermTelemetry::~TermTelemetry()
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     try
     {
         WriteFinalTraceLog();
         TraceLoggingUnregister(g_hConsoleVirtTermParserEventTraceProvider);
     }
     CATCH_LOG()
+#endif
 }
 
 // Routine Description:
@@ -58,6 +62,7 @@ TermTelemetry::~TermTelemetry()
 // - <none>
 void TermTelemetry::Log(const Codes code) noexcept
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     // Initially we wanted to pass over a string (ex. "CUU") and use a dictionary data type to hold the counts.
     // However we would have to search through the dictionary every time we called this method, so we decided
     // to use an array which has very quick access times.
@@ -65,6 +70,9 @@ void TermTelemetry::Log(const Codes code) noexcept
     // send out the telemetry, but the upside is we should have very good performance.
     _uiTimesUsed[code]++;
     _uiTimesUsedCurrent++;
+#else
+    (void)code;
+#endif
 }
 
 // Routine Description:
@@ -76,6 +84,7 @@ void TermTelemetry::Log(const Codes code) noexcept
 // - <none>
 void TermTelemetry::LogFailed(const wchar_t wch) noexcept
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     if (wch > CHAR_MAX)
     {
         _uiTimesFailedOutsideRange++;
@@ -87,6 +96,9 @@ void TermTelemetry::LogFailed(const wchar_t wch) noexcept
         _uiTimesFailed[wch]++;
         _uiTimesFailedCurrent++;
     }
+#else
+    (void)wch;
+#endif
 }
 
 // Routine Description:
@@ -98,9 +110,13 @@ void TermTelemetry::LogFailed(const wchar_t wch) noexcept
 // - total number.
 unsigned int TermTelemetry::GetAndResetTimesUsedCurrent() noexcept
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     const auto temp = _uiTimesUsedCurrent;
     _uiTimesUsedCurrent = 0;
     return temp;
+#else
+    return 0;
+#endif
 }
 
 // Routine Description:
@@ -112,9 +128,13 @@ unsigned int TermTelemetry::GetAndResetTimesUsedCurrent() noexcept
 // - total number.
 unsigned int TermTelemetry::GetAndResetTimesFailedCurrent() noexcept
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     const auto temp = _uiTimesFailedCurrent;
     _uiTimesFailedCurrent = 0;
     return temp;
+#else
+    return 0;
+#endif
 }
 
 // Routine Description:
@@ -126,9 +146,13 @@ unsigned int TermTelemetry::GetAndResetTimesFailedCurrent() noexcept
 // - total number.
 unsigned int TermTelemetry::GetAndResetTimesFailedOutsideRangeCurrent() noexcept
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     const auto temp = _uiTimesFailedOutsideRangeCurrent;
     _uiTimesFailedOutsideRangeCurrent = 0;
     return temp;
+#else
+    return 0;
+#endif
 }
 
 // Routine Description:
@@ -141,7 +165,11 @@ unsigned int TermTelemetry::GetAndResetTimesFailedOutsideRangeCurrent() noexcept
 // - <none>
 void TermTelemetry::SetShouldWriteFinalLog(const bool writeLog) noexcept
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     _fShouldWriteFinalLog = writeLog;
+#else
+    (void)writeLog;
+#endif
 }
 
 // Routine Description:
@@ -153,7 +181,11 @@ void TermTelemetry::SetShouldWriteFinalLog(const bool writeLog) noexcept
 // - <none>
 void TermTelemetry::SetActivityId(const GUID* activityId) noexcept
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     _activityId = *activityId;
+#else
+    (void)activityId;
+#endif
 }
 
 // Routine Description:
@@ -166,6 +198,7 @@ void TermTelemetry::SetActivityId(const GUID* activityId) noexcept
 // - <none>
 void TermTelemetry::WriteFinalTraceLog() const
 {
+#if ENABLE_SHITTY_MICROSOFT_TELEMETRY
     if (_fShouldWriteFinalLog)
     {
         // Determine if we've logged any VT100 sequences at all.
@@ -286,6 +319,7 @@ void TermTelemetry::WriteFinalTraceLog() const
                                       TraceLoggingUInt32(_uiTimesFailedOutsideRange, "FailedOutsideRange"));
         }
     }
+#endif
 }
 
 #pragma warning(pop)

@@ -615,7 +615,7 @@ void Window::_UpdateWindowSize(const til::size sizeNew)
 
     WI_ClearFlag(gci.Flags, CONSOLE_SETTING_WINDOW_SIZE);
 
-    if (!IsInFullscreen() && !IsInMaximized())
+    //if (!IsInFullscreen() && !IsInMaximized())
     {
         // Figure out how big to make the window, given the desired client area size.
         siAttached.ResizingWindow++;
@@ -895,7 +895,7 @@ int Window::UpdateScrollBar(bool isVertical,
     si.nMax = maxSize;
     si.nPos = viewportPosition;
 
-    return SetScrollInfo(_hWnd, isVertical ? SB_VERT : SB_HORZ, &si, TRUE);
+    return SetScrollInfo(_hWnd, isVertical ? SB_VERT : SB_HORZ, &si, isAltBuffer);
 }
 
 // Routine Description:

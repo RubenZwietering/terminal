@@ -239,7 +239,7 @@ using namespace Microsoft::Console::Types;
 
         break;
     }
-
+    /*
     case WM_ACTIVATE:
     {
         // if we're activated by a mouse click, remember it so
@@ -251,7 +251,7 @@ using namespace Microsoft::Console::Types;
         goto CallDefWin;
         break;
     }
-
+    */
     case WM_SETFOCUS:
     {
         gci.ProcessHandleList.ModifyConsoleProcessFocus(TRUE);

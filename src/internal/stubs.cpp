@@ -3,6 +3,8 @@
 
 #include "precomp.h"
 
+#include "DarkMode.h"
+
 #include "../inc/conint.h"
 
 using namespace Microsoft::Console::Internal;
@@ -25,9 +27,29 @@ void EdpPolicy::AuditClipboard(const std::wstring_view /*destinationName*/) noex
 {
 }
 
-[[nodiscard]] HRESULT Theming::TrySetDarkMode(HWND /*hwnd*/) noexcept
+[[nodiscard]] HRESULT Theming::TrySetDarkMode(HWND hwnd) noexcept
 {
-    return S_FALSE;
+    static bool init = false;
+    if (!init)
+    {
+        InitDarkMode();
+        AllowDarkModeForWindow(hwnd, true); // seems to always return false
+        init = true;
+    }
+    else
+    {
+        g_darkModeEnabled = _ShouldAppsUseDarkMode() && !IsHighContrast();
+
+        _RefreshImmersiveColorPolicyState();
+        _GetIsImmersiveColorUsingHighContrast(IHCM_REFRESH);
+    }
+
+    if (g_darkModeEnabled)
+        SetWindowTheme(hwnd, L"DarkMode_Explorer", NULL);
+    else
+        SetWindowTheme(hwnd, L"Explorer", NULL);
+
+    return HRESULT(!RefreshTitleBarThemeColor(hwnd));
 }
 
 [[nodiscard]] bool DefaultApp::CheckDefaultAppPolicy() noexcept

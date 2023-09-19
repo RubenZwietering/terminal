@@ -1,0 +1,20 @@
+changes:
+- (done) dark mode context menu
+- (done) removed swallowing of inputs when not focused
+- (done) changed cursor back to the old invert (conhostold.exe) since there were graphical glitches. if the backcolor is gray the cursor is impossible/hard to see -> find a better solution
+- (done) only redraw the main buffer scrollbar on update
+
+investigate:
+- scrollbar updates twice per window resize, once for the window resize and once for the buffer resize
+- change the cursor invert so it is always visible without graphical glitches
+
+bugs:
+- (fixed) scrollbar does not update when maximized / in fullscreen
+- scrollbar flickers with a very old graphic sometimes
+- scrollbar does not always hide thumb when disabled
+
+features:
+- (done) disabled telemetry
+- remove telemetry comepletely
+- sixel support
+- disabling of scrollbars with a setting
