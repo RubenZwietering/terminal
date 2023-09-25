@@ -427,6 +427,7 @@ void VtRendererTest::Xterm256TestColors()
                                                   renderSettings,
                                                   &renderData,
                                                   false,
+                                                  false,
                                                   false));
 
     TestPaint(*engine, [&]() {
@@ -437,6 +438,7 @@ void VtRendererTest::Xterm256TestColors()
                                                       renderSettings,
                                                       &renderData,
                                                       false,
+                                                      false,
                                                       false));
 
         Log::Comment(NoThrowString().Format(
@@ -445,6 +447,7 @@ void VtRendererTest::Xterm256TestColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes({ 0x000c0b0a, 0x00090807 },
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
     });
@@ -456,6 +459,7 @@ void VtRendererTest::Xterm256TestColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes({ 0x000c0b0a, 0x00090807 },
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
         WriteCallback(EMPTY_CALLBACK_SENTINEL, 1); // This will make sure nothing was written to the callback
@@ -473,6 +477,7 @@ void VtRendererTest::Xterm256TestColors()
                                                   renderSettings,
                                                   &renderData,
                                                   false,
+                                                  false,
                                                   false));
 
     TestPaint(*engine, [&]() {
@@ -486,6 +491,7 @@ void VtRendererTest::Xterm256TestColors()
                                                       renderSettings,
                                                       &renderData,
                                                       false,
+                                                      false,
                                                       false));
 
         Log::Comment(NoThrowString().Format(
@@ -495,6 +501,7 @@ void VtRendererTest::Xterm256TestColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes,
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
 
@@ -506,6 +513,7 @@ void VtRendererTest::Xterm256TestColors()
                                                       renderSettings,
                                                       &renderData,
                                                       false,
+                                                      false,
                                                       false));
 
         Log::Comment(NoThrowString().Format(
@@ -515,6 +523,7 @@ void VtRendererTest::Xterm256TestColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes,
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
 
@@ -526,6 +535,7 @@ void VtRendererTest::Xterm256TestColors()
                                                       renderSettings,
                                                       &renderData,
                                                       false,
+                                                      false,
                                                       false));
 
         Log::Comment(NoThrowString().Format(
@@ -535,6 +545,7 @@ void VtRendererTest::Xterm256TestColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes,
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
 
@@ -546,6 +557,7 @@ void VtRendererTest::Xterm256TestColors()
                                                       renderSettings,
                                                       &renderData,
                                                       false,
+                                                      false,
                                                       false));
 
         Log::Comment(NoThrowString().Format(
@@ -555,6 +567,7 @@ void VtRendererTest::Xterm256TestColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes,
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
 
@@ -566,6 +579,7 @@ void VtRendererTest::Xterm256TestColors()
                                                       renderSettings,
                                                       &renderData,
                                                       false,
+                                                      false,
                                                       false));
     });
 
@@ -576,6 +590,7 @@ void VtRendererTest::Xterm256TestColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes({},
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
         WriteCallback(EMPTY_CALLBACK_SENTINEL, 1); // This will make sure nothing was written to the callback
@@ -614,6 +629,7 @@ void VtRendererTest::Xterm256TestITUColors()
                                                   renderSettings,
                                                   &renderData,
                                                   false,
+                                                  false,
                                                   false));
 
     TestPaint(*engine, [&]() {
@@ -625,6 +641,7 @@ void VtRendererTest::Xterm256TestITUColors()
                                                       renderSettings,
                                                       &renderData,
                                                       false,
+                                                      false,
                                                       false));
     });
 
@@ -635,6 +652,7 @@ void VtRendererTest::Xterm256TestITUColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes,
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
         WriteCallback(EMPTY_CALLBACK_SENTINEL, 1); // This will make sure nothing was written to the callback
@@ -648,6 +666,7 @@ void VtRendererTest::Xterm256TestITUColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes,
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
 
@@ -665,6 +684,7 @@ void VtRendererTest::Xterm256TestITUColors()
                                                       renderSettings,
                                                       &renderData,
                                                       false,
+                                                      false,
                                                       false));
 
         Log::Comment(NoThrowString().Format(
@@ -674,6 +694,7 @@ void VtRendererTest::Xterm256TestITUColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes,
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
     });
@@ -685,6 +706,7 @@ void VtRendererTest::Xterm256TestITUColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes({},
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
         WriteCallback(EMPTY_CALLBACK_SENTINEL, 1); // This will make sure nothing was written to the callback
@@ -936,7 +958,7 @@ void VtRendererTest::Xterm256TestAttributesAcrossReset()
     Log::Comment(L"----Start With All Attributes Reset----");
     TextAttribute textAttributes = {};
     qExpectedInput.push_back("\x1b[m");
-    VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes, renderSettings, &renderData, false, false));
+    VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes, renderSettings, &renderData, false, false, false));
 
     switch (renditionAttribute)
     {
@@ -982,29 +1004,29 @@ void VtRendererTest::Xterm256TestAttributesAcrossReset()
         break;
     }
     qExpectedInput.push_back(renditionSequence.str());
-    VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes, renderSettings, &renderData, false, false));
+    VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes, renderSettings, &renderData, false, false, false));
 
     Log::Comment(L"----Set Green Foreground----");
     textAttributes.SetIndexedForeground(TextColor::DARK_GREEN);
     qExpectedInput.push_back("\x1b[32m");
-    VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes, renderSettings, &renderData, false, false));
+    VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes, renderSettings, &renderData, false, false, false));
 
     Log::Comment(L"----Reset Default Foreground and Retain Rendition----");
     textAttributes.SetDefaultForeground();
     qExpectedInput.push_back("\x1b[m");
     qExpectedInput.push_back(renditionSequence.str());
-    VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes, renderSettings, &renderData, false, false));
+    VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes, renderSettings, &renderData, false, false, false));
 
     Log::Comment(L"----Set Green Background----");
     textAttributes.SetIndexedBackground(TextColor::DARK_GREEN);
     qExpectedInput.push_back("\x1b[42m");
-    VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes, renderSettings, &renderData, false, false));
+    VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes, renderSettings, &renderData, false, false, false));
 
     Log::Comment(L"----Reset Default Background and Retain Rendition----");
     textAttributes.SetDefaultBackground();
     qExpectedInput.push_back("\x1b[m");
     qExpectedInput.push_back(renditionSequence.str());
-    VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes, renderSettings, &renderData, false, false));
+    VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes, renderSettings, &renderData, false, false, false));
 
     VerifyExpectedInputsDrained();
 }
@@ -1257,6 +1279,7 @@ void VtRendererTest::XtermTestColors()
                                                   renderSettings,
                                                   &renderData,
                                                   false,
+                                                  false,
                                                   false));
 
     TestPaint(*engine, [&]() {
@@ -1270,6 +1293,7 @@ void VtRendererTest::XtermTestColors()
                                                       renderSettings,
                                                       &renderData,
                                                       false,
+                                                      false,
                                                       false));
 
         Log::Comment(NoThrowString().Format(
@@ -1279,6 +1303,7 @@ void VtRendererTest::XtermTestColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes,
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
 
@@ -1290,6 +1315,7 @@ void VtRendererTest::XtermTestColors()
                                                       renderSettings,
                                                       &renderData,
                                                       false,
+                                                      false,
                                                       false));
 
         Log::Comment(NoThrowString().Format(
@@ -1299,6 +1325,7 @@ void VtRendererTest::XtermTestColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes,
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
 
@@ -1310,6 +1337,7 @@ void VtRendererTest::XtermTestColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes,
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
 
@@ -1331,6 +1359,7 @@ void VtRendererTest::XtermTestColors()
                                                       renderSettings,
                                                       &renderData,
                                                       false,
+                                                      false,
                                                       false));
 
         Log::Comment(NoThrowString().Format(
@@ -1342,6 +1371,7 @@ void VtRendererTest::XtermTestColors()
                                                       renderSettings,
                                                       &renderData,
                                                       false,
+                                                      false,
                                                       false));
 
         Log::Comment(NoThrowString().Format(
@@ -1351,6 +1381,7 @@ void VtRendererTest::XtermTestColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes(textAttributes,
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
     });
@@ -1362,6 +1393,7 @@ void VtRendererTest::XtermTestColors()
         VERIFY_SUCCEEDED(engine->UpdateDrawingBrushes({},
                                                       renderSettings,
                                                       &renderData,
+                                                      false,
                                                       false,
                                                       false));
         WriteCallback(EMPTY_CALLBACK_SENTINEL, 1); // This will make sure nothing was written to the callback

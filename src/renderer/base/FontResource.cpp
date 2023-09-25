@@ -23,7 +23,9 @@ namespace
     static constexpr DWORD DFF_RGBCOLOR = 0x0080;
 
     // DRCS soft fonts only require 96 characters at most.
-    static constexpr size_t CHAR_COUNT = 96;
+    static constexpr DWORD DRCS_CHAR_COUNT = 96;
+
+    static constexpr DWORD MAX_CHAR_COUNT = 256;
 
 #pragma pack(push, 1)
     struct GLYPHENTRY
@@ -70,8 +72,8 @@ namespace
         WORD dfCspace;
         DWORD dfColorPointer;
         DWORD dfReserved1[4];
-        GLYPHENTRY dfCharTable[CHAR_COUNT];
-        CHAR szFaceName[LF_FACESIZE];
+        // GLYPHENTRY dfCharTable[DRCS_CHAR_COUNT];
+        // CHAR szFaceName[LF_FACESIZE];
     };
 #pragma pack(pop)
 }
@@ -79,11 +81,23 @@ namespace
 FontResource::FontResource(const std::span<const uint16_t> bitPattern,
                            const til::size sourceSize,
                            const til::size targetSize,
-                           const size_t centeringHint) :
+                           const size_t centeringHint,
+                           const wchar_t firstChar,
+                           const size_t charCount) :
     _bitPattern{ bitPattern.begin(), bitPattern.end() },
     _sourceSize{ sourceSize },
     _targetSize{ targetSize },
-    _centeringHint{ centeringHint }
+    _centeringHint{ centeringHint },
+    _firstChar{ gsl::narrow<BYTE>(firstChar) },
+    _charCount{ std::min(gsl::narrow<DWORD>(charCount), MAX_CHAR_COUNT) }
+{
+}
+
+FontResource::FontResource(const std::span<const uint16_t> bitPattern,
+                           const til::size sourceSize,
+                           const til::size targetSize,
+                           const size_t centeringHint) :
+    FontResource(bitPattern, sourceSize, targetSize, centeringHint, L' ', DRCS_CHAR_COUNT)
 {
 }
 
@@ -111,8 +125,10 @@ void FontResource::_regenerateFont()
     const auto targetHeight = _targetSize.narrow_height<WORD>();
     const auto charSizeInBytes = (targetWidth + 7) / 8 * targetHeight;
 
-    const DWORD fontBitmapSize = charSizeInBytes * CHAR_COUNT;
-    const DWORD fontResourceSize = sizeof(FONTINFO) + fontBitmapSize;
+    const DWORD fontCharTableSize = sizeof(GLYPHENTRY) * _charCount;
+    const DWORD fontFaceNameSize = sizeof(CHAR) * LF_FACESIZE;
+    const DWORD fontBitmapSize = charSizeInBytes * _charCount;
+    const DWORD fontResourceSize = sizeof(FONTINFO) + fontCharTableSize + fontFaceNameSize + fontBitmapSize;
 
     auto fontResourceBuffer = std::vector<byte>(fontResourceSize);
     void* fontResourceBufferPointer = fontResourceBuffer.data();
@@ -127,23 +143,30 @@ void FontResource::_regenerateFont()
     fontResource.dfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
     fontResource.dfAvgWidth = targetWidth;
     fontResource.dfMaxWidth = targetWidth;
-    fontResource.dfFirstChar = L' ';
-    fontResource.dfLastChar = fontResource.dfFirstChar + CHAR_COUNT - 1;
-    fontResource.dfFace = offsetof(FONTINFO, szFaceName);
-    fontResource.dfBitsOffset = sizeof(FONTINFO);
+    fontResource.dfFirstChar = _firstChar;
+    fontResource.dfLastChar = gsl::narrow<BYTE>(fontResource.dfFirstChar + _charCount - 1);
+    fontResource.dfFace = sizeof(FONTINFO) + fontCharTableSize; // = offsetof(FONTINFO, szFaceName);
+    fontResource.dfBitsOffset = fontResource.dfFace + fontFaceNameSize; // = sizeof(FONTINFO);
     fontResource.dfFlags = DFF_FIXED | DFF_1COLOR;
 
     // We use an atomic counter to create a locally-unique name for the font.
     static std::atomic<uint64_t> faceNameCounter;
-    sprintf_s(fontResource.szFaceName, "WTSOFTFONT%016llX", faceNameCounter++);
+    // sprintf_s(fontResource.szFaceName, "WTSOFTFONT%016llX", faceNameCounter++);
+
+    void* fontFaceNamePointer = static_cast<byte*>(fontResourceBufferPointer) + fontResource.dfFace;
+    LPSTR const fontFaceName = static_cast<LPSTR const>(fontFaceNamePointer);
+    sprintf_s(fontFaceName, fontFaceNameSize, "WTRASTERFONT%016llX", faceNameCounter++);
+
+    void* fontCharTablePointer = static_cast<byte*>(fontResourceBufferPointer) + sizeof(FONTINFO);
+    GLYPHENTRY* const fontCharTable = static_cast<GLYPHENTRY* const>(fontCharTablePointer);
 
     // Each character has a fixed size and position in the font bitmap, but we
     // still need to fill in the header table with that information.
-    for (auto i = 0u; i < std::size(fontResource.dfCharTable); i++)
+    for (auto i = 0u; i < _charCount; i++) // std::size(fontResource.dfCharTable)
     {
         const auto charOffset = fontResource.dfBitsOffset + charSizeInBytes * i;
-        fontResource.dfCharTable[i].geOffset = charOffset;
-        fontResource.dfCharTable[i].geWidth = targetWidth;
+        fontCharTable[i].geOffset = charOffset; // fontResource.dfCharTable[i]
+        fontCharTable[i].geWidth = targetWidth; // fontResource.dfCharTable[i]
     }
 
     // Raster fonts aren't generally scalable, so we need to resize the bit
@@ -164,13 +187,154 @@ void FontResource::_regenerateFont()
     logFont.lfCharSet = fontResource.dfCharSet;
     logFont.lfOutPrecision = OUT_RASTER_PRECIS;
     logFont.lfPitchAndFamily = fontResource.dfPitchAndFamily;
-    strcpy_s(logFont.lfFaceName, fontResource.szFaceName);
+    strcpy_s(logFont.lfFaceName, fontFaceName); // fontResource.szFaceName
     _fontHandle.reset(CreateFontIndirectA(&logFont));
     LOG_HR_IF_NULL(E_FAIL, _fontHandle.get());
 }
 
+#if DBG
+bool bitPatternDebug = false;
+#endif
+
 void FontResource::_resizeBitPattern(std::span<byte> targetBuffer)
 {
+#if DBG
+    if (bitPatternDebug)
+    {
+        constexpr std::array<std::array<byte, 5>, 16> nums = {
+            std::array<byte, 5>{
+                0b10011001,
+                0b10100101,
+                0b10100101,
+                0b10100101,
+                0b10011001,
+            },
+            std::array<byte, 5>{
+                0b10011001,
+                0b10001001,
+                0b10001001,
+                0b10001001,
+                0b10001001,
+            },
+            std::array<byte, 5>{
+                0b10011001,
+                0b10100101,
+                0b10001001,
+                0b10010001,
+                0b10111101,
+            },
+            std::array<byte, 5>{
+                0b10011001,
+                0b10100101,
+                0b10001001,
+                0b10100101,
+                0b10011001,
+            },
+            std::array<byte, 5>{
+                0b10100101,
+                0b10100101,
+                0b10111101,
+                0b10000101,
+                0b10000101,
+            },
+            std::array<byte, 5>{
+                0b10111101,
+                0b10100001,
+                0b10111001,
+                0b10000101,
+                0b10111001,
+            },
+            std::array<byte, 5>{
+                0b10011001,
+                0b10100001,
+                0b10111001,
+                0b10100101,
+                0b10011001,
+            },
+            std::array<byte, 5>{
+                0b10111101,
+                0b10000101,
+                0b10001001,
+                0b10010001,
+                0b10100001,
+            },
+            std::array<byte, 5>{
+                0b10011001,
+                0b10100101,
+                0b10011001,
+                0b10100101,
+                0b10011001,
+            },
+            std::array<byte, 5>{
+                0b10011001,
+                0b10100101,
+                0b10011101,
+                0b10000101,
+                0b10011001,
+            },
+            std::array<byte, 5>{
+                0b10011001,
+                0b10100101,
+                0b10111101,
+                0b10100101,
+                0b10100101,
+            },
+            std::array<byte, 5>{
+                0b10111001,
+                0b10100101,
+                0b10111001,
+                0b10100101,
+                0b10111001,
+            },
+            std::array<byte, 5>{
+                0b10011101,
+                0b10100001,
+                0b10100001,
+                0b10100001,
+                0b10011101,
+            },
+            std::array<byte, 5>{
+                0b10111001,
+                0b10100101,
+                0b10100101,
+                0b10100101,
+                0b10111001,
+            },
+            std::array<byte, 5>{
+                0b10111101,
+                0b10100001,
+                0b10111001,
+                0b10100001,
+                0b10111101,
+            },
+            std::array<byte, 5>{
+                0b10111101,
+                0b10100001,
+                0b10111001,
+                0b10100001,
+                0b10100001,
+            }
+        };
+
+        for (size_t n = 0; n < _charCount; n++)
+            for (size_t y = 0; y < _targetSize.height; y++)
+            {
+                size_t i = n * _targetSize.height + y;
+                assert(i < targetBuffer.size());
+
+                if (y == 0 || y == 15)
+                    targetBuffer[i] = 0b11111111;
+                else if (y > 1 && y < 7)
+                    targetBuffer[i] = nums[(n >> 4) & 0xf][y - 2];
+                else if (y > 8 && y < 14)
+                    targetBuffer[i] = nums[n & 0xf][y - 9];
+                else
+                    targetBuffer[i] = 0b10000001;
+            }
+        return;
+    }
+#endif
+
     auto sourceWidth = _sourceSize.width;
     auto targetWidth = _targetSize.width;
     const auto sourceHeight = _sourceSize.height;
@@ -217,7 +381,7 @@ void FontResource::_resizeBitPattern(std::span<byte> targetBuffer)
     targetWidth = _targetSize.width;
 
     auto targetBufferPointer = targetBuffer.begin();
-    for (auto ch = 0; ch < CHAR_COUNT; ch++)
+    for (auto ch = 0u; ch < _charCount; ch++)
     {
         // Bits are read from the source from left to right - MSB to LSB. The source
         // column is a single bit representing the 1-based position. The reason for

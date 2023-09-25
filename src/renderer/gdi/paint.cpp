@@ -349,6 +349,13 @@ bool GdiEngine::FontHasWesternScript(HDC hdc)
         // If we have a soft font, we only use the character's lower 7 bits.
         const auto softFontCharMask = _lastFontType == FontType::Soft ? L'\x7F' : ~0;
 
+        // If we draw raster block characters, we only use the character's lower 7 bits.
+        // Characters \x80 to \xA0 don't show otherwise we could use the full 8 bits.
+        const auto rasterDrawnBlockCharMask = _lastFontType == FontType::RasterBlock ? L'\x7F' : ~0;
+
+        // We won't have a soft font character and block character at the same time.
+        const auto charMask = softFontCharMask & rasterDrawnBlockCharMask;
+
         // Sum up the total widths the entire line/run is expected to take while
         // copying the pixel widths into a structure to direct GDI how many pixels to use per character.
         size_t cchCharWidths = 0;
@@ -360,7 +367,7 @@ bool GdiEngine::FontHasWesternScript(HDC hdc)
 
             const auto text = cluster.GetText();
             polyString += text;
-            polyString.back() &= softFontCharMask;
+            polyString.back() &= charMask;
             polyWidth.push_back(gsl::narrow<int>(cluster.GetColumns()) * coordFontSize.width);
             cchCharWidths += polyWidth.back();
             polyWidth.append(text.size() - 1, 0);
@@ -456,6 +463,18 @@ bool GdiEngine::FontHasWesternScript(HDC hdc)
         {
             const auto& t = _pPolyText[i];
 
+            // COLORREF cr = SetDCBrushColor(_hdcMemoryContext, RGB(255, 0, 0));
+            //BeginPath(_hdcMemoryContext);
+            //RECT rc = t.rcl;
+            //DrawText(_hdcMemoryContext, const_cast<LPWSTR>(t.lpstr), t.n, &rc,
+            //    DT_NOCLIP | DT_EXPANDTABS | DT_NOPREFIX | DT_SINGLELINE | DT_LEFT | DT_BOTTOM | (t.uiFlags & ETO_RTLREADING ? DT_RTLREADING : 0));
+            //EndPath(_hdcMemoryContext);
+            //StrokeAndFillPath(_hdcMemoryContext);
+            // SetDCBrushColor(_hdcMemoryContext, cr);
+
+            // ExtTextOutW(_hdcMemoryContext, t.x, t.y, t.uiFlags, &t.rcl, t.lpstr, t.n, t.pdx);
+            //  | SSA_LINK | (t.uiFlags & ETO_RTLREADING ? SSA_RTL : 0)
+
             // The following if/else replicates the essentials of how ExtTextOutW() without ETO_IGNORELANGUAGE works.
             // See InternalTextOut().
             //
@@ -465,7 +484,9 @@ bool GdiEngine::FontHasWesternScript(HDC hdc)
             // GH#12294:
             // Additionally we set ss.fOverrideDirection to TRUE, because we need to present RTL
             // text in logical order in order to be compatible with applications like `vim -H`.
-            if (_fontHasWesternScript && ScriptIsComplex(t.lpstr, t.n, SIC_COMPLEX) == S_FALSE)
+            //
+            // Need to check if we are drawing raster block characters otherwise ScriptIsComplex will return true and ScriptStringOut draws an extra glyph
+            if (_lastFontType == FontType::RasterBlock || (_fontHasWesternScript && ScriptIsComplex(t.lpstr, t.n, SIC_COMPLEX) == S_FALSE))
             {
                 if (!ExtTextOutW(_hdcMemoryContext, t.x, t.y, t.uiFlags | ETO_IGNORELANGUAGE, &t.rcl, t.lpstr, t.n, t.pdx))
                 {

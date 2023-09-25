@@ -143,7 +143,7 @@ try
     });
 
     // A. Prep Colors
-    RETURN_IF_FAILED(_UpdateDrawingBrushes(pEngine, {}, false, true));
+    RETURN_IF_FAILED(_UpdateDrawingBrushes(pEngine, {}, false, false, true));
 
     // B. Perform Scroll Operations
     RETURN_IF_FAILED(_PerformScrolling(pEngine));
@@ -568,6 +568,11 @@ bool Renderer::s_IsSoftFontChar(const std::wstring_view& v, const size_t firstSo
     return v.size() == 1 && v[0] >= firstSoftFontChar && v[0] <= lastSoftFontChar;
 }
 
+bool Renderer::s_IsBlockChar(const std::wstring_view& v)
+{
+    return v.size() == 1 && v[0] >= L'\u2580' && v[0] <= L'\u259F';
+}
+
 // Routine Description:
 // - Get the information on what font we would be using if we decided to create a font with the given parameters
 // - This is for use with speculative calculations.
@@ -783,6 +788,7 @@ void Renderer::_PaintBufferOutputHelper(_In_ IRenderEngine* const pEngine,
         auto patternIds = _pData->GetPatternId(target);
         // Determine whether we're using a soft font.
         auto usingSoftFont = s_IsSoftFontChar(it->Chars(), _firstSoftFontChar, _lastSoftFontChar);
+        auto usingRasterBlockFont = s_IsBlockChar(it->Chars());
 
         // And hold the point where we should start drawing.
         auto screenPoint = target;
@@ -800,7 +806,7 @@ void Renderer::_PaintBufferOutputHelper(_In_ IRenderEngine* const pEngine,
             const auto currentPatternId = patternIds;
 
             // Update the drawing brushes with our color and font usage.
-            THROW_IF_FAILED(_UpdateDrawingBrushes(pEngine, currentRunColor, usingSoftFont, false));
+            THROW_IF_FAILED(_UpdateDrawingBrushes(pEngine, currentRunColor, usingSoftFont, usingRasterBlockFont, false));
 
             // Advance the point by however many columns we've just outputted and reset the accumulator.
             screenPoint.x += cols;
@@ -830,7 +836,8 @@ void Renderer::_PaintBufferOutputHelper(_In_ IRenderEngine* const pEngine,
                 til::point thisPoint{ screenPoint.x + cols, screenPoint.y };
                 const auto thisPointPatterns = _pData->GetPatternId(thisPoint);
                 const auto thisUsingSoftFont = s_IsSoftFontChar(it->Chars(), _firstSoftFontChar, _lastSoftFontChar);
-                const auto changedPatternOrFont = patternIds != thisPointPatterns || usingSoftFont != thisUsingSoftFont;
+                const auto thisUsingRasterBlockFont = s_IsBlockChar(it->Chars());
+                const auto changedPatternOrFont = patternIds != thisPointPatterns || usingSoftFont != thisUsingSoftFont || usingRasterBlockFont != thisUsingRasterBlockFont;
                 if (color != it->TextAttr() || changedPatternOrFont)
                 {
                     auto newAttr{ it->TextAttr() };
@@ -841,6 +848,7 @@ void Renderer::_PaintBufferOutputHelper(_In_ IRenderEngine* const pEngine,
                         color = newAttr;
                         patternIds = thisPointPatterns;
                         usingSoftFont = thisUsingSoftFont;
+                        usingRasterBlockFont = thisUsingRasterBlockFont;
                         break; // vend this run
                     }
                 }
@@ -1226,11 +1234,12 @@ void Renderer::_PaintSelection(_In_ IRenderEngine* const pEngine)
 [[nodiscard]] HRESULT Renderer::_UpdateDrawingBrushes(_In_ IRenderEngine* const pEngine,
                                                       const TextAttribute textAttributes,
                                                       const bool usingSoftFont,
+                                                      const bool usingRasterBlockFont,
                                                       const bool isSettingDefaultBrushes)
 {
     // The last color needs to be each engine's responsibility. If it's local to this function,
     //      then on the next engine we might not update the color.
-    return pEngine->UpdateDrawingBrushes(textAttributes, _renderSettings, _pData, usingSoftFont, isSettingDefaultBrushes);
+    return pEngine->UpdateDrawingBrushes(textAttributes, _renderSettings, _pData, usingSoftFont, usingRasterBlockFont, isSettingDefaultBrushes);
 }
 
 // Routine Description:

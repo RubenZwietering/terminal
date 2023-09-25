@@ -1926,6 +1926,7 @@ CATCH_RETURN()
                                                      const RenderSettings& renderSettings,
                                                      const gsl::not_null<IRenderData*> /*pData*/,
                                                      const bool usingSoftFont,
+                                                     const bool /*usingRasterBlockFont*/,
                                                      const bool isSettingDefaultBrushes) noexcept
 try
 {

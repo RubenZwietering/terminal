@@ -898,7 +898,7 @@ int Window::UpdateScrollBar(bool isVertical,
     si.nMax = maxSize;
     si.nPos = viewportPosition;
 
-    return SetScrollInfo(_hWnd, isVertical ? SB_VERT : SB_HORZ, &si, isAltBuffer);
+    return SetScrollInfo(_hWnd, isVertical ? SB_VERT : SB_HORZ, &si, TRUE);
 }
 
 // Routine Description:

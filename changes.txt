@@ -2,7 +2,7 @@ changes:
 - (done) dark mode context menu
 - (done) removed swallowing of inputs when not focused
 - (done) changed cursor back to the old invert (conhostold.exe) since there were graphical glitches. if the backcolor is gray the cursor is impossible/hard to see -> find a better solution
-- (done) only redraw the main buffer scrollbar on update
+- (done, reversed) only redraw the main buffer scrollbar on update
 
 investigate:
 - scrollbar updates twice per window resize, once for the window resize and once for the buffer resize
@@ -12,9 +12,16 @@ bugs:
 - (fixed) scrollbar does not update when maximized / in fullscreen
 - scrollbar flickers with a very old graphic sometimes
 - scrollbar does not always hide thumb when disabled
+- switching to a drcs font causes copying text to be the wrong code points since they use different code points for the drcs font character range
+- some characters do not get drawn properly because they will be drawn with ExtTextOutW with ETO_IGNORELANGUAGE, can force it with a character that uses ScriptStringOut if it is in the same string like this:
+   --> not properly drawm:    ▁▂▃▅▆▇
+   --> properly drawn:      │ ▁▂▃▅▆▇ │
+   (paint.cpp @ _FlushBufferLines())
+- Disable Scroll-Forward feature is broken. must have happened in the last ~1200 commits
 
 features:
 - (done) disabled telemetry
 - remove telemetry comepletely
 - sixel support
 - disabling of scrollbars with a setting
+- replacing box drawing chars with better drawn ones

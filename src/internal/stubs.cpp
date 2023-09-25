@@ -45,11 +45,11 @@ void EdpPolicy::AuditClipboard(const std::wstring_view /*destinationName*/) noex
     }
 
     if (g_darkModeEnabled)
-        SetWindowTheme(hwnd, L"DarkMode_Explorer", NULL);
+        SetWindowTheme(hwnd, L"DarkMode_Explorer", nullptr);
     else
-        SetWindowTheme(hwnd, L"Explorer", NULL);
+        SetWindowTheme(hwnd, L"Explorer", nullptr);
 
-    return HRESULT(!RefreshTitleBarThemeColor(hwnd));
+    return static_cast<HRESULT>(!RefreshTitleBarThemeColor(hwnd));
 }
 
 [[nodiscard]] bool DefaultApp::CheckDefaultAppPolicy() noexcept

@@ -95,6 +95,7 @@ namespace Microsoft::Console::Render
     private:
         static GridLineSet s_GetGridlines(const TextAttribute& textAttribute) noexcept;
         static bool s_IsSoftFontChar(const std::wstring_view& v, const size_t firstSoftFontChar, const size_t lastSoftFontChar);
+        static bool s_IsBlockChar(const std::wstring_view& v);
 
         [[nodiscard]] HRESULT _PaintFrameForEngine(_In_ IRenderEngine* const pEngine) noexcept;
         bool _CheckViewportAndScroll();
@@ -107,7 +108,7 @@ namespace Microsoft::Console::Render
         void _PaintCursor(_In_ IRenderEngine* const pEngine);
         void _PaintOverlays(_In_ IRenderEngine* const pEngine);
         void _PaintOverlay(IRenderEngine& engine, const RenderOverlay& overlay);
-        [[nodiscard]] HRESULT _UpdateDrawingBrushes(_In_ IRenderEngine* const pEngine, const TextAttribute attr, const bool usingSoftFont, const bool isSettingDefaultBrushes);
+        [[nodiscard]] HRESULT _UpdateDrawingBrushes(_In_ IRenderEngine* const pEngine, const TextAttribute attr, const bool usingSoftFont, const bool usingRasterBlockFont, const bool isSettingDefaultBrushes);
         [[nodiscard]] HRESULT _PerformScrolling(_In_ IRenderEngine* const pEngine);
         std::vector<til::rect> _GetSelectionRects() const;
         void _ScrollPreviousSelection(const til::point delta);

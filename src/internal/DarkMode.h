@@ -5,6 +5,9 @@
 #endif
 #pragma comment(lib, "dwmapi.lib")
 
+#pragma warning(push)
+#pragma warning(disable : 26490)
+
 enum IMMERSIVE_HC_CACHE_MODE
 {
     IHCM_USE_CACHED_VALUE,
@@ -93,18 +96,18 @@ bool g_darkModeSupported = false;
 bool g_darkModeEnabled = false;
 DWORD g_buildNumber = 0;
 
-bool AllowDarkModeForWindow(HWND hWnd, bool allow)
+bool AllowDarkModeForWindow(HWND hWnd, bool allow) noexcept
 {
     return g_darkModeSupported && _AllowDarkModeForWindow(hWnd, allow);
 }
 
-bool IsHighContrast()
+bool IsHighContrast() noexcept
 {
     HIGHCONTRASTW highContrast = { sizeof(highContrast) };
     return SystemParametersInfo(SPI_GETHIGHCONTRAST, sizeof(highContrast), &highContrast, FALSE) && (highContrast.dwFlags & HCF_HIGHCONTRASTON);
 }
 
-bool RefreshTitleBarThemeColor(HWND hWnd)
+bool RefreshTitleBarThemeColor(HWND hWnd) noexcept
 {
     BOOL dark = FALSE;
     if (_IsDarkModeAllowedForWindow(hWnd) &&
@@ -128,7 +131,7 @@ bool RefreshTitleBarThemeColor(HWND hWnd)
     return SUCCEEDED(::DwmSetWindowAttribute(hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &dark, sizeof(dark)));
 }
 
-bool IsColorSchemeChangeMessage(LPARAM lParam)
+bool IsColorSchemeChangeMessage(LPARAM lParam) noexcept
 {
     bool is = false;
     if (lParam && CompareStringOrdinal(reinterpret_cast<LPCWCH>(lParam), -1, L"ImmersiveColorSet", -1, TRUE) == CSTR_EQUAL)
@@ -140,14 +143,14 @@ bool IsColorSchemeChangeMessage(LPARAM lParam)
     return is;
 }
 
-bool IsColorSchemeChangeMessage(UINT message, LPARAM lParam)
+bool IsColorSchemeChangeMessage(UINT message, LPARAM lParam) noexcept
 {
     if (message == WM_SETTINGCHANGE)
         return IsColorSchemeChangeMessage(lParam);
     return false;
 }
 
-void AllowDarkModeForApp(bool allow)
+void AllowDarkModeForApp(bool allow) noexcept
 {
     if (_AllowDarkModeForApp)
         _AllowDarkModeForApp(allow);
@@ -164,7 +167,7 @@ constexpr bool CheckBuildNumber(DWORD buildNumber)
             buildNumber == 19045);
 }
 
-void InitDarkMode()
+void InitDarkMode() noexcept
 {
     fnRtlGetNtVersionNumbers _RtlGetNtVersionNumbers = nullptr;
     if (HMODULE handle = GetModuleHandle(TEXT("ntdll.dll")))
@@ -217,3 +220,5 @@ void InitDarkMode()
         }
     }
 }
+
+#pragma warning(pop)

@@ -42,6 +42,7 @@ namespace Microsoft::Console::Render
                                                            const RenderSettings& renderSettings,
                                                            const gsl::not_null<IRenderData*> pData,
                                                            const bool usingSoftFont,
+                                                           const bool usingRasterBlockFont,
                                                            const bool isSettingDefaultBrushes) noexcept override;
         [[nodiscard]] HRESULT PaintBufferLine(const std::span<const Cluster> clusters,
                                               const til::point coord,

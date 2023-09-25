@@ -24,6 +24,12 @@ namespace Microsoft::Console::Render
         FontResource(const std::span<const uint16_t> bitPattern,
                      const til::size sourceSize,
                      const til::size targetSize,
+                     const size_t centeringHint,
+                     const wchar_t firstChar,
+                     const size_t charCount);
+        FontResource(const std::span<const uint16_t> bitPattern,
+                     const til::size sourceSize,
+                     const til::size targetSize,
                      const size_t centeringHint);
         FontResource() = default;
         ~FontResource() = default;
@@ -39,6 +45,8 @@ namespace Microsoft::Console::Render
         til::size _sourceSize;
         til::size _targetSize;
         size_t _centeringHint{ 0 };
+        BYTE _firstChar{ 0 };
+        DWORD _charCount{ 0 };
         wil::unique_hfontresource _resourceHandle;
         wil::unique_hfont _fontHandle;
     };

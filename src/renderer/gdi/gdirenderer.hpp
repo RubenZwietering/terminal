@@ -63,6 +63,7 @@ namespace Microsoft::Console::Render
                                                    const RenderSettings& renderSettings,
                                                    const gsl::not_null<IRenderData*> pData,
                                                    const bool usingSoftFont,
+                                                   const bool usingRasterBlockFont,
                                                    const bool isSettingDefaultBrushes) noexcept override;
         [[nodiscard]] HRESULT UpdateFont(const FontInfoDesired& FontInfoDesired,
                                          _Out_ FontInfo& FontInfo) noexcept override;
@@ -103,6 +104,8 @@ namespace Microsoft::Console::Render
         HFONT _hfontItalic;
         TEXTMETRICW _tmFontMetrics;
         FontResource _softFont;
+        FontResource _rasterBlockFont;
+        std::vector<uint16_t> _generateRasterBlockGlyphs(_Inout_opt_ til::size& glyphSize, _Out_ size_t& glyphCount) const noexcept;
 
         static const size_t s_cPolyTextCache = 80;
         POLYTEXTW _pPolyText[s_cPolyTextCache];
@@ -144,7 +147,8 @@ namespace Microsoft::Console::Render
             Undefined,
             Default,
             Italic,
-            Soft
+            Soft,
+            RasterBlock
         };
         FontType _lastFontType;
         bool _fontHasWesternScript = false;

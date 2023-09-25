@@ -30,6 +30,7 @@ Xterm256Engine::Xterm256Engine(_In_ wil::unique_hfile hPipe,
                                                            const RenderSettings& /*renderSettings*/,
                                                            const gsl::not_null<IRenderData*> pData,
                                                            const bool usingSoftFont,
+                                                           const bool /*usingRasterBlockFont*/,
                                                            const bool isSettingDefaultBrushes) noexcept
 {
     RETURN_HR_IF(S_FALSE, _passthrough && isSettingDefaultBrushes);
