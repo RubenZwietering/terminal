@@ -432,18 +432,12 @@ GdiEngine::~GdiEngine()
     // Inform the soft font of the change in size.
     _softFont.SetTargetSize(_GetFontSize());
 
-    // Generate new rasterized block glyphs.
-    if (_rasterBlockFont == nullptr)
-    {
-        auto glyphSize = _GetFontSize();
-        size_t glyphCount = 0;
-        const auto glyphData = _generateRasterBlockGlyphs(glyphSize, glyphCount);
-        _rasterBlockFont = FontResource{ glyphData, glyphSize, _GetFontSize(), 0, L'\0', glyphCount };
-    }
-    else
-    {
-        _rasterBlockFont.SetTargetSize(_GetFontSize());
-    }
+    // Generate new rasterized block glyphs always. FontResource can scale the bit patterns,
+    // unfortunately it handles the shade glyphs very poorly.
+    auto glyphSize = _GetFontSize();
+    size_t glyphCount = 0;
+    const auto glyphData = _generateRasterBlockGlyphs(glyphSize, glyphCount);
+    _rasterBlockFont = FontResource{ glyphData, glyphSize, _GetFontSize(), 0, L'\0', glyphCount };
 
     LOG_IF_FAILED(InvalidateAll());
 
@@ -533,593 +527,219 @@ GdiEngine::~GdiEngine()
 
 std::vector<uint16_t> GdiEngine::_generateRasterBlockGlyphs(_Inout_opt_ til::size& glyphSize, _Out_ size_t& glyphCount) const noexcept
 {
-    constexpr size_t WIDTH = 8;
-    constexpr size_t HEIGHT = 16;
+    constexpr int MIN_WIDTH = 2;
+    constexpr int MAX_WIDTH = 16;
+    constexpr int MIN_HEIGHT = 4;
+    constexpr int MAX_HEIGHT = 32;
     constexpr size_t GLYPHS = 32;
 
-    glyphSize = { WIDTH, HEIGHT };
+    glyphSize.width = std::clamp(glyphSize.width, MIN_WIDTH, MAX_WIDTH); 
+    glyphSize.height = std::clamp(glyphSize.height, MIN_HEIGHT, MAX_HEIGHT);
     glyphCount = GLYPHS;
 
-    // std::vector<uint16_t> glyphData(HEIGHT * GLYPHS);
+    const int width =                    glyphSize.width;
+    const int height =                   glyphSize.height;
+    const int heightUpperOneEighth =     static_cast<int>(ceil(height / 8.0f));
+    const int heightUpperOneQuarter =    static_cast<int>(ceil(height / 4.0f));
+    const int heightUpperThreeEighths =  static_cast<int>(ceil(height / 8.0f * 3.0f));
+    const int heightUpperHalf =          static_cast<int>(ceil(height / 2.0f));
+    const int heightUpperFiveEighths =   static_cast<int>(ceil(height / 8.0f * 5.0f));
+    const int heightUpperThreeQuarters = static_cast<int>(ceil(height / 4.0f * 3.0f));
+    const int heightUpperSevenEighths =  static_cast<int>(ceil(height / 8.0f * 7.0f));
+    const int heightLowerOneEighth =     static_cast<int>(floor(height / 8.0f));
+    const int heightLowerOneQuarter =    static_cast<int>(floor(height / 4.0f));
+    const int heightLowerThreeEighths =  static_cast<int>(floor(height / 8.0f * 3.0f));
+    const int heightLowerHalf =          static_cast<int>(floor(height / 2.0f));
+    const int heightLowerFiveEighths =   static_cast<int>(floor(height / 8.0f * 5.0f));
+    const int heightLowerThreeQuarters = static_cast<int>(floor(height / 4.0f * 3.0f));
+    const int heightLowerSevenEighths =  static_cast<int>(floor(height / 8.0f * 7.0f));
 
-    std::vector<uint16_t> glyphData = {
-        // U+2580 Upper half block
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
+    const uint16_t glyphLineNone =  0;
+    const uint16_t glyphLineLeft =  1 << 15;
+    const uint16_t glyphLineRight = glyphLineLeft >> (width - 1);
 
-        // U+2581 Lower one eighth block
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
+    constexpr auto shiftRight = [](uint16_t glyphLine, int shiftPlusOne) -> uint16_t {
+        for (int s = 0; s < shiftPlusOne - 1; s++)
+            glyphLine |= glyphLine >> 1;
+        return glyphLine;
+    };
+    constexpr auto shiftLeft = [](uint16_t glyphLine, int shiftPlusOne) -> uint16_t {
+        for (int s = 0; s < shiftPlusOne - 1; s++)
+            glyphLine |= glyphLine << 1;
+        return glyphLine;
+    };
 
-        // U+2582 Lower one quarter block
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
+    const uint16_t glyphLineAll =                 shiftRight(glyphLineLeft, width);
+    const uint16_t glyphLineLeftOneEighth =       shiftRight(glyphLineLeft, static_cast<int>(ceil(width / 8.0f)));
+    const uint16_t glyphLineLeftOneQuarter =      shiftRight(glyphLineLeft, static_cast<int>(ceil(width / 4.0f)));
+    const uint16_t glyphLineLeftThreeEighths =    shiftRight(glyphLineLeft, static_cast<int>(ceil(width / 8.0f * 3.0f)));
+    const uint16_t glyphLineLeftHalf =            shiftRight(glyphLineLeft, static_cast<int>(ceil(width / 2.0f)));
+    const uint16_t glyphLineLeftFiveEighths =     shiftRight(glyphLineLeft, static_cast<int>(ceil(width / 8.0f * 5.0f)));
+    const uint16_t glyphLineLeftThreeQuarters =   shiftRight(glyphLineLeft, static_cast<int>(ceil(width / 4.0f * 3.0f)));
+    const uint16_t glyphLineLeftSevenEighths =    shiftRight(glyphLineLeft, static_cast<int>(ceil(width / 8.0f * 7.0f)));
+    const uint16_t glyphLineRightOneEighth =      shiftLeft(glyphLineRight, static_cast<int>(ceil(width / 8.0f)));
+    // const uint16_t glyphLineRightOneQuarter =     shiftLeft(glyphLineRight, static_cast<int>(ceil(width / 4.0f)));
+    // const uint16_t glyphLineRightThreeEighths =   shiftLeft(glyphLineRight, static_cast<int>(ceil(width / 8.0f * 3.0f)));
+    const uint16_t glyphLineRightHalf =           shiftLeft(glyphLineRight, static_cast<int>(ceil(width / 2.0f)));
+    // const uint16_t glyphLineRightFiveEighths =    shiftLeft(glyphLineRight, static_cast<int>(ceil(width / 8.0f * 5.0f)));
+    // const uint16_t glyphLineRightThreeQuarters =  shiftLeft(glyphLineRight, static_cast<int>(ceil(width / 4.0f * 3.0f)));
+    // const uint16_t glyphLineRightSevenEighths =   shiftLeft(glyphLineRight, static_cast<int>(ceil(width / 8.0f * 7.0f)));
 
-        // U+2583 Lower three eighths block
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
+    std::vector<uint16_t> glyphData(height * glyphCount);
 
-        // U+2584 Lower half block
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-
-        // U+2585 Lower five eighths block
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-
-        // U+2586 Lower three quarters block
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-
-        // U+2587 Lower seven eighths block
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-
-        // U+2588 Full block
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-
-        // U+2589 Left seven eighths block
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-        0b11111110'00000000,
-
-        // U+258A Left three quarters block
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-        0b11111100'00000000,
-
-        // U+258B Left five eighths block
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-        0b11111000'00000000,
-
-        // U+258C Left half block
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-
-        // U+258D Left three eighths block
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-        0b11100000'00000000,
-
-        // U+258E Left one quarter block
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-        0b11000000'00000000,
-
-        // U+258F Left one eighth block
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-        0b10000000'00000000,
-
-        // U+2590 Right half block
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-
-        // U+2591 Light shade
-        0b00100010'00000000,
-        0b00000000'00000000,
-        0b10001000'00000000,
-        0b00000000'00000000,
-        0b00100010'00000000,
-        0b00000000'00000000,
-        0b10001000'00000000,
-        0b00000000'00000000,
-        0b00100010'00000000,
-        0b00000000'00000000,
-        0b10001000'00000000,
-        0b00000000'00000000,
-        0b00100010'00000000,
-        0b00000000'00000000,
-        0b10001000'00000000,
-        0b00000000'00000000,
-
-        // U+2592 Medium shade
-        0b01010101'00000000,
-        0b00000000'00000000,
-        0b10101010'00000000,
-        0b00000000'00000000,
-        0b01010101'00000000,
-        0b00000000'00000000,
-        0b10101010'00000000,
-        0b00000000'00000000,
-        0b01010101'00000000,
-        0b00000000'00000000,
-        0b10101010'00000000,
-        0b00000000'00000000,
-        0b01010101'00000000,
-        0b00000000'00000000,
-        0b10101010'00000000,
-        0b00000000'00000000,
-
-        // U+2593 Dark shade
-        0b01010101'00000000,
-        0b11111111'00000000,
-        0b10101010'00000000,
-        0b11111111'00000000,
-        0b01010101'00000000,
-        0b11111111'00000000,
-        0b10101010'00000000,
-        0b11111111'00000000,
-        0b01010101'00000000,
-        0b11111111'00000000,
-        0b10101010'00000000,
-        0b11111111'00000000,
-        0b01010101'00000000,
-        0b11111111'00000000,
-        0b10101010'00000000,
-        0b11111111'00000000,
-
-        // U+2594 Upper one eighth block
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-
-        // U+2595 Right one eighth block
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-        0b00000001'00000000,
-
-        // U+2596 Quadrant lower left
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-
-        // U+2597 Quadrant lower right
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-
-        // U+2598 Quadrant upper left
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-
-        // U+2599 Quadrant upper left and lower left and lower right
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-
-        // U+259A Quadrant upper left and lower right
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-
-        // U+259B Quadrant upper left and upper right and lower left
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-
-        // U+259C Quadrant upper left and upper right and lower right
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-
-        // U+259D Quadrant upper right
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-        0b00000000'00000000,
-
-        // U+259E Quadrant upper right and lower left
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-        0b11110000'00000000,
-
-        // U+259F Quadrant upper right and lower left and lower right
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b00001111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
-        0b11111111'00000000,
+    auto glyphIterator = glyphData.begin();
+    const auto fillScanLines = [&](int count, uint16_t bits) {
+        assert(glyphIterator != glyphData.end());
+        glyphIterator = std::fill_n(glyphIterator, count, bits);
     };
     
+    // U+2580 Upper half block
+    fillScanLines(heightUpperHalf, glyphLineAll);
+    fillScanLines(heightLowerHalf, glyphLineNone);
+
+    // U+2581 Lower one eighth block
+    fillScanLines(heightUpperSevenEighths, glyphLineNone);
+    fillScanLines(heightLowerOneEighth, glyphLineAll);
+    
+    // U+2582 Lower one quarter block
+    fillScanLines(heightUpperThreeQuarters, glyphLineNone);
+    fillScanLines(heightLowerOneQuarter, glyphLineAll);
+
+    // U+2583 Lower three eighths block
+    fillScanLines(heightUpperFiveEighths, glyphLineNone);
+    fillScanLines(heightLowerThreeEighths, glyphLineAll);
+
+    // U+2584 Lower half block
+    fillScanLines(heightUpperHalf, glyphLineNone);
+    fillScanLines(heightLowerHalf, glyphLineAll);
+
+    // U+2585 Lower five eighths block
+    fillScanLines(heightUpperThreeEighths, glyphLineNone);
+    fillScanLines(heightLowerFiveEighths, glyphLineAll);
+
+    // U+2586 Lower three quarters block
+    fillScanLines(heightUpperOneQuarter, glyphLineNone);
+    fillScanLines(heightLowerThreeQuarters, glyphLineAll);
+
+    // U+2587 Lower seven eighths block
+    fillScanLines(heightUpperOneEighth, glyphLineNone);
+    fillScanLines(heightLowerSevenEighths, glyphLineAll);
+
+    // U+2588 Full block
+    fillScanLines(height, glyphLineAll);
+
+    // U+2589 Left seven eighths block
+    fillScanLines(height, glyphLineLeftSevenEighths);
+
+    // U+258A Left three quarters block
+    fillScanLines(height, glyphLineLeftThreeQuarters);
+
+    // U+258B Left five eighths block
+    fillScanLines(height, glyphLineLeftFiveEighths);
+
+    // U+258C Left half block
+    fillScanLines(height, glyphLineLeftHalf);
+
+    // U+258D Left three eighths block
+    fillScanLines(height, glyphLineLeftThreeEighths);
+
+    // U+258E Left one quarter block
+    fillScanLines(height, glyphLineLeftOneQuarter);
+
+    // U+258F Left one eighth block
+    fillScanLines(height, glyphLineLeftOneEighth);
+
+    // U+2590 Right half block
+    fillScanLines(height, glyphLineRightHalf);
+
+    // U+2591 Light shade
+    uint16_t glyphLineLightShadeTop = glyphLineRight;
+    uint16_t glyphLineLightShadeBottom = glyphLineRight << 2;
+    for (int x = 0; x < width; x += 4)
+    {
+        glyphLineLightShadeTop |= glyphLineLightShadeTop << 4;
+        glyphLineLightShadeBottom |= glyphLineLightShadeBottom << 4;
+    }
+    for (int y = height; y > 0;)
+    {
+        fillScanLines(std::clamp(y--, 0, 1), glyphLineNone);
+        fillScanLines(std::clamp(y--, 0, 1), glyphLineLightShadeTop);
+        fillScanLines(std::clamp(y--, 0, 1), glyphLineNone);
+        fillScanLines(std::clamp(y--, 0, 1), glyphLineLightShadeBottom);
+    }
+
+    // U+2592 Medium shade
+    uint16_t glyphLineMediumShadeTop = glyphLineRight;
+    uint16_t glyphLineMediumShadeBottom = glyphLineRight << 1;
+    for (int x = 0; x < width; x += 2)
+    {
+        glyphLineMediumShadeTop |= glyphLineMediumShadeTop << 2;
+        glyphLineMediumShadeBottom |= glyphLineMediumShadeBottom << 2;
+    }
+    for (int y = height; y > 0;)
+    {
+        fillScanLines(std::clamp(y--, 0, 1), glyphLineNone);
+        fillScanLines(std::clamp(y--, 0, 1), glyphLineMediumShadeTop);
+        fillScanLines(std::clamp(y--, 0, 1), glyphLineNone);
+        fillScanLines(std::clamp(y--, 0, 1), glyphLineMediumShadeBottom);
+    }
+
+    // U+2593 Dark shade
+    for (int y = height; y > 0;)
+    {
+        fillScanLines(std::clamp(y--, 0, 1), glyphLineAll);
+        fillScanLines(std::clamp(y--, 0, 1), glyphLineMediumShadeTop);
+        fillScanLines(std::clamp(y--, 0, 1), glyphLineAll);
+        fillScanLines(std::clamp(y--, 0, 1), glyphLineMediumShadeBottom);
+    }
+
+    // U+2594 Upper one eighth block
+    fillScanLines(heightUpperOneEighth, glyphLineAll);
+    fillScanLines(heightLowerSevenEighths, glyphLineNone);
+
+    // U+2595 Right one eighth block
+    fillScanLines(height, glyphLineRightOneEighth);
+
+    // U+2596 Quadrant lower left
+    fillScanLines(heightUpperHalf, glyphLineNone);
+    fillScanLines(heightLowerHalf, glyphLineLeftHalf);
+
+    // U+2597 Quadrant lower right
+    fillScanLines(heightUpperHalf, glyphLineNone);
+    fillScanLines(heightLowerHalf, glyphLineRightHalf);
+
+    // U+2598 Quadrant upper left
+    fillScanLines(heightUpperHalf, glyphLineLeftHalf);
+    fillScanLines(heightLowerHalf, glyphLineNone);
+
+    // U+2599 Quadrant upper left and lower left and lower right
+    fillScanLines(heightUpperHalf, glyphLineLeftHalf);
+    fillScanLines(heightLowerHalf, glyphLineAll);
+
+    // U+259A Quadrant upper left and lower right
+    fillScanLines(heightUpperHalf, glyphLineLeftHalf);
+    fillScanLines(heightLowerHalf, glyphLineRightHalf);
+
+    // U+259B Quadrant upper left and upper right and lower left
+    fillScanLines(heightUpperHalf, glyphLineAll);
+    fillScanLines(heightLowerHalf, glyphLineLeftHalf);
+
+    // U+259C Quadrant upper left and upper right and lower right
+    fillScanLines(heightUpperHalf, glyphLineAll);
+    fillScanLines(heightLowerHalf, glyphLineRightHalf);
+
+    // U+259D Quadrant upper right
+    fillScanLines(heightUpperHalf, glyphLineRightHalf);
+    fillScanLines(heightLowerHalf, glyphLineNone);
+
+    // U+259E Quadrant upper right and lower left
+    fillScanLines(heightUpperHalf, glyphLineRightHalf);
+    fillScanLines(heightLowerHalf, glyphLineLeftHalf);
+
+    // U+259F Quadrant upper right and lower left and lower right
+    fillScanLines(heightUpperHalf, glyphLineRightHalf);
+    fillScanLines(heightLowerHalf, glyphLineAll);
+
     return glyphData;
 }
 

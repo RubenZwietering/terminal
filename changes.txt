@@ -24,4 +24,5 @@ features:
 - remove telemetry comepletely
 - sixel support
 - disabling of scrollbars with a setting
-- replacing box drawing chars with better drawn ones
+- (partly done) replacing box drawing chars with better drawn ones
+added block characters, not yet box drawing
