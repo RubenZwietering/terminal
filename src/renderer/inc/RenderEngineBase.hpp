@@ -30,9 +30,15 @@ namespace Microsoft::Console::Render
 
         [[nodiscard]] HRESULT NotifyNewText(const std::wstring_view newText) noexcept override;
 
+        [[nodiscard]] HRESULT PaintSixels(const til::rect& rect) noexcept override;
+
         [[nodiscard]] HRESULT UpdateSoftFont(const std::span<const uint16_t> bitPattern,
                                              const til::size cellSize,
                                              const size_t centeringHint) noexcept override;
+
+        [[nodiscard]] HRESULT UpdateSixels(const std::span<const COLORREF> sixelPixels,
+                                           const til::size bufferSize,
+                                           const til::point coord) noexcept override;
 
         [[nodiscard]] HRESULT PrepareRenderInfo(const RenderFrameInfo& info) noexcept override;
 

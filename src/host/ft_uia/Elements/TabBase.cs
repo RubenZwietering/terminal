@@ -6,11 +6,10 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests.Elements
 {
-    using System;
-    using System.Collections.Generic;
-
     using Conhost.UIA.Tests.Common;
     using OpenQA.Selenium.Appium;
+    using System;
+    using System.Collections.Generic;
 
     public abstract class TabBase : IDisposable
     {

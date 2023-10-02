@@ -7,26 +7,18 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.IO;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-    using System.Threading;
-
-    using Microsoft.Win32;
-
-    using WEX.Common.Managed;
-    using WEX.Logging.Interop;
-    using WEX.TestExecution;
-    using WEX.TestExecution.Markup;
-
     using Conhost.UIA.Tests.Common;
     using Conhost.UIA.Tests.Common.NativeMethods;
     using Conhost.UIA.Tests.Elements;
     using OpenQA.Selenium;
+    using System;
+    using System.Collections.Generic;
+    using System.Drawing;
+    using System.IO;
+    using System.Linq;
+    using WEX.Logging.Interop;
+    using WEX.TestExecution;
+    using WEX.TestExecution.Markup;
 
     [TestClass]
     public class VirtualTerminalTests

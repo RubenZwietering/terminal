@@ -16,6 +16,7 @@
     <ClCompile Include="..\InteractDispatch.cpp" />
     <ClCompile Include="..\MacroBuffer.cpp" />
     <ClCompile Include="..\adaptDispatchGraphics.cpp" />
+    <ClCompile Include="..\SixelBuffer.cpp" />
     <ClCompile Include="..\telemetry.cpp" />
     <ClCompile Include="..\terminalOutput.cpp" />
     <ClCompile Include="..\tracing.cpp" />
@@ -32,6 +33,7 @@
     <ClInclude Include="..\ITerminalApi.hpp" />
     <ClInclude Include="..\MacroBuffer.hpp" />
     <ClInclude Include="..\precomp.h" />
+    <ClInclude Include="..\SixelBuffer.hpp" />
     <ClInclude Include="..\telemetry.hpp" />
     <ClInclude Include="..\terminalOutput.hpp" />
     <ClInclude Include="..\ITermDispatch.hpp" />

@@ -7,15 +7,13 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests
 {
-    using System;
-
-    using WEX.Logging.Interop;
-    using WEX.TestExecution;
-    using WEX.TestExecution.Markup;
-
     using Conhost.UIA.Tests.Common;
     using Conhost.UIA.Tests.Common.NativeMethods;
     using Conhost.UIA.Tests.Elements;
+    using System;
+    using WEX.Logging.Interop;
+    using WEX.TestExecution;
+    using WEX.TestExecution.Markup;
 
     [TestClass]
     public class MouseWheelTests

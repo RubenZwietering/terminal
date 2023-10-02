@@ -701,6 +701,9 @@ IStateMachineEngine::StringHandler OutputStateMachineEngine::ActionDcsDispatch(c
     case DcsActionCodes::DECRSPS_RestorePresentationState:
         handler = _dispatch->RestorePresentationState(parameters.at(0));
         break;
+    case DcsActionCodes::DECSIXEL_SixelMode:
+        handler = _dispatch->SixelMode(parameters.at(0), parameters.at(1).value_or(0), parameters.at(2));
+        break;
     default:
         handler = nullptr;
         break;

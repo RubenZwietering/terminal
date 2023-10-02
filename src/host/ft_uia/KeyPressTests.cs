@@ -5,21 +5,16 @@
 // </copyright>
 // <summary>UI Automation tests for the certain key presses.</summary>
 //----------------------------------------------------------------------------------------------------------------------
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Drawing;
-
-using WEX.TestExecution;
-using WEX.TestExecution.Markup;
-using WEX.Logging.Interop;
-
 using Conhost.UIA.Tests.Common;
 using Conhost.UIA.Tests.Common.NativeMethods;
 using Conhost.UIA.Tests.Elements;
 using OpenQA.Selenium;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using WEX.TestExecution;
+using WEX.TestExecution.Markup;
 
 
 namespace Conhost.UIA.Tests

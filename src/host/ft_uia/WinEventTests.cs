@@ -8,24 +8,18 @@
 
 namespace Conhost.UIA.Tests
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-
-    using WEX.Common.Managed;
-    using WEX.Logging.Interop;
-    using WEX.TestExecution;
-    using WEX.TestExecution.Markup;
-
     using Conhost.UIA.Tests.Common;
     using Conhost.UIA.Tests.Common.NativeMethods;
     using Conhost.UIA.Tests.Elements;
     using OpenQA.Selenium;
-    using System.Threading;
-    using System.Runtime.InteropServices;
+    using System;
+    using System.Collections.Generic;
     using System.Drawing;
+    using System.Linq;
+    using System.Runtime.InteropServices;
+    using WEX.Logging.Interop;
+    using WEX.TestExecution;
+    using WEX.TestExecution.Markup;
 
     // Test hooks adapted from C++ WinEvent accessibility sample at https://msdn.microsoft.com/en-us/library/ms971319.aspx#atg_consoleaccessibility_topic05
     [TestClass]

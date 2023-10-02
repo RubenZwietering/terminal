@@ -6,13 +6,10 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests.Common
 {
+    using Microsoft.Win32;
     using System;
     using System.Diagnostics;
     using System.IO;
-
-    using Microsoft.Win32;
-
-    using WEX.Common.Managed;
     using WEX.TestExecution;
 
     public class RegistryHelper : IDisposable

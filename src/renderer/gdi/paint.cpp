@@ -9,6 +9,9 @@
 
 #pragma hdrstop
 
+// TransparentBlt
+#pragma comment(lib, "Msimg32.lib")
+
 using namespace Microsoft::Console::Render;
 
 // This is an excerpt of GDI's FontHasWesternScript() as
@@ -116,6 +119,9 @@ bool GdiEngine::FontHasWesternScript(HDC hdc)
     // Gutters are defined as sub-character width pixels at the bottom or right of the screen.
     const auto coordFontSize = _GetFontSize();
     RETURN_HR_IF(HRESULT_FROM_WIN32(ERROR_INVALID_STATE), coordFontSize.width == 0 || coordFontSize.height == 0);
+
+    _ptScrollOffset.x -= _szInvalidScroll.width;
+    _ptScrollOffset.y -= _szInvalidScroll.height;
 
     til::size szGutter;
     szGutter.width = _szMemorySurface.width % coordFontSize.width;
@@ -765,6 +771,61 @@ bool GdiEngine::FontHasWesternScript(HDC hdc)
 
             RETURN_HR_IF(E_FAIL, !InvertRect(_hdcMemoryContext, &r));
         }
+    }
+
+    return S_OK;
+}
+
+[[nodiscard]] HRESULT GdiEngine::PaintSixels(const til::rect& rect) noexcept
+{
+    RETURN_HR_IF_NULL(S_OK, _hdcSixel.get());
+
+    LOG_IF_FAILED(_FlushBufferLines());
+
+    const auto pixelRect = rect.scale_up(_GetFontSize());
+    const auto bitmapRect = til::rect{ _ptSixelBitmap - _ptScrollOffset, _szSixelBitmap };
+    const auto updateRect = pixelRect & bitmapRect;
+
+    if (updateRect)
+    {
+        const auto maxWidth = std::min(updateRect.width(), _szMemorySurface.width);
+        const auto maxHeight = std::min(updateRect.height(), _szMemorySurface.height);
+
+        RETURN_HR_IF(E_FAIL, !TransparentBlt(_hdcMemoryContext,
+                        updateRect.left, updateRect.top, maxWidth, maxHeight,
+                        _hdcSixel.get(),
+                        updateRect.left + _ptScrollOffset.x - _ptSixelBitmap.x, updateRect.top + _ptScrollOffset.y - _ptSixelBitmap.y, maxWidth, maxHeight,
+                        0x00ff00ff));
+
+        #if DBG
+        // if (_fDebug)
+        {
+            POINT p{};
+            auto hpen = SelectPen(_hdcMemoryContext, CreatePen(0, 1, RGB(127, 0, 127)));
+            MoveToEx(_hdcMemoryContext, updateRect.left, updateRect.top, &p);
+            LineTo(_hdcMemoryContext, updateRect.left + maxWidth - 1, updateRect.top);
+            LineTo(_hdcMemoryContext, updateRect.left + maxWidth - 1, updateRect.top + maxHeight - 1);
+            LineTo(_hdcMemoryContext, updateRect.left, updateRect.top + maxHeight - 1);
+            LineTo(_hdcMemoryContext, updateRect.left, updateRect.top);
+            DeletePen(SelectPen(_hdcMemoryContext, CreatePen(0, 1, RGB(255, 0, 0))));
+            MoveToEx(_hdcMemoryContext, _ptSixelBitmap.x - _ptScrollOffset.x, _ptSixelBitmap.y - _ptScrollOffset.y, nullptr);
+            LineTo(_hdcMemoryContext, _ptSixelBitmap.x - _ptScrollOffset.x + _szSixelBitmap.width - 1, _ptSixelBitmap.y - _ptScrollOffset.y);
+            LineTo(_hdcMemoryContext, _ptSixelBitmap.x - _ptScrollOffset.x + _szSixelBitmap.width - 1, _ptSixelBitmap.y - _ptScrollOffset.y + _szSixelBitmap.height - 1);
+            LineTo(_hdcMemoryContext, _ptSixelBitmap.x, _ptSixelBitmap.y - _ptScrollOffset.y + _szSixelBitmap.height - 1);
+            LineTo(_hdcMemoryContext, _ptSixelBitmap.x, _ptSixelBitmap.y - _ptScrollOffset.y);
+            MoveToEx(_hdcMemoryContext, p.x, p.y, nullptr);
+            DeletePen(SelectPen(_hdcMemoryContext, hpen));
+        }
+        #endif
+
+        //BitBlt(_hdcMemoryContext, 0, 0, 500, 500, _hdcSixel.get(), 0, 0, SRCCOPY); // SRCAND);
+
+        // BLENDFUNCTION bf{ .BlendOP = AC_SRC_OVER, .BlendFlags = 0, .SourceConstantAlpha = 0xff, .AlphaFormat = AC_SRC_ALPHA };
+        // RETURN_HR_IF(E_FAIL, !AlphaBlend(_hdcMemoryContext,
+        //    _sixelRect.left, _sixelRect.top, _sixelRect.width(), _sixelRect.height(),
+        //    _hdcSixel.get(),
+        //    0, 0, _sixelRect.width(), _sixelRect.height(),
+        //    bf));
     }
 
     return S_OK;

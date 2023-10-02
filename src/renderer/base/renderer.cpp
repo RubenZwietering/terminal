@@ -160,6 +160,9 @@ try
     // 3. Paint overlays that reside above the text buffer
     _PaintOverlays(pEngine);
 
+    // 3.5 Paint sixels
+    _PaintSixels(pEngine);
+
     // 4. Paint Selection
     _PaintSelection(pEngine);
 
@@ -558,6 +561,34 @@ void Renderer::UpdateSoftFont(const std::span<const uint16_t> bitPattern, const 
         LOG_IF_FAILED(pEngine->UpdateSoftFont(bitPattern, cellSize, centeringHint));
     }
     TriggerRedrawAll();
+}
+
+void Renderer::UpdateSixels(const std::span<const COLORREF> sixelPixels, const til::size bufferSize, const til::point coord)
+{
+    auto view = _viewport;
+    // bufferSize is in pixel sizes but the update region will at least not be smaller than that.
+    auto srUpdateRegion = til::rect{ coord, bufferSize };
+    bool invalidated = view.TrimToViewport(&srUpdateRegion);
+
+    if (invalidated)
+    {
+        view.ConvertToOrigin(&srUpdateRegion);
+    }
+
+    FOREACH_ENGINE(pEngine)
+    {
+        LOG_IF_FAILED(pEngine->UpdateSixels(sixelPixels, bufferSize, coord));
+
+        if (invalidated)
+        {
+            LOG_IF_FAILED(pEngine->Invalidate(&srUpdateRegion));
+        }
+    }
+
+    if (invalidated)
+    {
+        NotifyPaintFrame();
+    }
 }
 
 // We initially tried to have a "_isSoftFontChar" member function, but MSVC
@@ -1185,6 +1216,21 @@ void Renderer::_PaintOverlays(_In_ IRenderEngine* const pEngine)
         for (const auto& overlay : overlays)
         {
             _PaintOverlay(*pEngine, overlay);
+        }
+    }
+    CATCH_LOG();
+}
+
+void Renderer::_PaintSixels(_In_ IRenderEngine* const pEngine)
+{
+    try
+    {
+        std::span<const til::rect> dirtyAreas;
+        LOG_IF_FAILED(pEngine->GetDirtyArea(dirtyAreas));
+
+        for (auto& dirtyRect : dirtyAreas)
+        {
+            LOG_IF_FAILED(pEngine->PaintSixels(dirtyRect));
         }
     }
     CATCH_LOG();

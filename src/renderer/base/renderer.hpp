@@ -71,6 +71,10 @@ namespace Microsoft::Console::Render
                             const til::size cellSize,
                             const size_t centeringHint);
 
+        void UpdateSixels(std::span<const COLORREF> sixelPixels,
+                          const til::size bufferSize,
+                          const til::point coord);
+
         [[nodiscard]] HRESULT GetProposedFont(const int iDpi,
                                               const FontInfoDesired& FontInfoDesired,
                                               _Out_ FontInfo& FontInfo);
@@ -104,6 +108,7 @@ namespace Microsoft::Console::Render
         void _PaintBufferOutputHelper(_In_ IRenderEngine* const pEngine, TextBufferCellIterator it, const til::point target, const bool lineWrapped);
         void _PaintBufferOutputGridLineHelper(_In_ IRenderEngine* const pEngine, const TextAttribute textAttribute, const size_t cchLine, const til::point coordTarget);
         bool _isHoveredHyperlink(const TextAttribute& textAttribute) const noexcept;
+        void _PaintSixels(_In_ IRenderEngine* const pEngine);
         void _PaintSelection(_In_ IRenderEngine* const pEngine);
         void _PaintCursor(_In_ IRenderEngine* const pEngine);
         void _PaintOverlays(_In_ IRenderEngine* const pEngine);

@@ -6,21 +6,16 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests.Elements
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-    using System.Text;
-
-    using OpenQA.Selenium.Appium;
-
-    using WEX.Logging.Interop;
-    using WEX.TestExecution;
-
     using Conhost.UIA.Tests.Common;
     using Conhost.UIA.Tests.Common.NativeMethods;
     using OpenQA.Selenium;
+    using OpenQA.Selenium.Appium;
+    using System;
+    using System.Collections.Generic;
+    using System.Drawing;
+    using System.Text;
+    using WEX.Logging.Interop;
+    using WEX.TestExecution;
 
     public class ViewportArea : IDisposable
     {

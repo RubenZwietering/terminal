@@ -6,13 +6,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests.Elements
 {
-    using System;
+    using Conhost.UIA.Tests.Common;
+    using OpenQA.Selenium.Appium;
     using System.Collections.Generic;
     using System.Linq;
-
-    using Conhost.UIA.Tests.Common;
     using NativeMethods = Conhost.UIA.Tests.Common.NativeMethods;
-    using OpenQA.Selenium.Appium;
 
     public class LayoutTab : TabBase
     {

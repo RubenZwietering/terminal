@@ -7,10 +7,6 @@
 namespace Conhost.UIA.Tests.Common
 {
     using OpenQA.Selenium.Appium;
-    using System;
-    using System.Globalization;
-
-    using WEX.Logging.Interop;
 
     public struct CheckBoxMeta
     {

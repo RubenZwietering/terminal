@@ -157,6 +157,8 @@ public:
 
     virtual StringHandler RequestSetting() = 0; // DECRQSS
 
+    virtual StringHandler SixelMode(const VTInt pixelAspectRatio, const VTInt backgroundColorOptions, const VTInt horizontalGridSize) = 0; // DECSIXEL
+
     virtual bool RequestPresentationStateReport(const DispatchTypes::PresentationReportFormat format) = 0; // DECRQPSR
     virtual StringHandler RestorePresentationState(const DispatchTypes::PresentationReportFormat format) = 0; // DECRSPS
 

@@ -8,20 +8,18 @@
 
 namespace Conhost.UIA.Tests
 {
+    using Conhost.UIA.Tests.Common;
+    using Conhost.UIA.Tests.Common.NativeMethods;
+    using Conhost.UIA.Tests.Elements;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Pipes;
     using System.Threading;
-
+    using System.Threading.Tasks;
     using WEX.Logging.Interop;
     using WEX.TestExecution;
     using WEX.TestExecution.Markup;
-
-    using Conhost.UIA.Tests.Common;
-    using Conhost.UIA.Tests.Common.NativeMethods;
-    using Conhost.UIA.Tests.Elements;
-    using System.Threading.Tasks;
 
     [TestClass]
     public class CloseTests

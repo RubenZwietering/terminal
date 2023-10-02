@@ -12,10 +12,8 @@ namespace Conhost.UIA.Tests.Common.NativeMethods
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
     using System.Text;
-
-    using Microsoft.Win32;
-    using WEX.TestExecution;
     using WEX.Logging.Interop;
+    using WEX.TestExecution;
 
     // Small extension method helpers to make C# feel closer to native.
     public static class NativeExtensions

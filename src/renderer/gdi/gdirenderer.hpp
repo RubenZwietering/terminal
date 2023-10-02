@@ -55,6 +55,7 @@ namespace Microsoft::Console::Render
                                                    const COLORREF color,
                                                    const size_t cchLine,
                                                    const til::point coordTarget) noexcept override;
+        [[nodiscard]] HRESULT PaintSixels(const til::rect& rect) noexcept override;
         [[nodiscard]] HRESULT PaintSelection(const til::rect& rect) noexcept override;
 
         [[nodiscard]] HRESULT PaintCursor(const CursorOptions& options) noexcept override;
@@ -70,6 +71,9 @@ namespace Microsoft::Console::Render
         [[nodiscard]] HRESULT UpdateSoftFont(const std::span<const uint16_t> bitPattern,
                                              const til::size cellSize,
                                              const size_t centeringHint) noexcept override;
+        [[nodiscard]] HRESULT UpdateSixels(const std::span<const COLORREF> sixelPixels,
+                                           const til::size bufferSize,
+                                           const til::point coord) noexcept override;
         [[nodiscard]] HRESULT UpdateDpi(const int iDpi) noexcept override;
         [[nodiscard]] HRESULT UpdateViewport(const til::inclusive_rect& srNewViewport) noexcept override;
 
@@ -106,6 +110,13 @@ namespace Microsoft::Console::Render
         FontResource _softFont;
         FontResource _rasterBlockFont;
         std::vector<uint16_t> _generateRasterBlockGlyphs(_Inout_opt_ til::size& glyphSize, _Out_ size_t& glyphCount) const noexcept;
+
+        til::point _ptScrollOffset;
+        wil::unique_hdc _hdcSixel;
+        til::size _szSixelBitmap;
+        til::point _ptSixelBitmap;
+        LPCOLORREF _pSixelBits = nullptr;
+        [[nodiscard]] HRESULT _ResizeSixelBitmap(const til::size newSize, const til::point newOffset) noexcept;
 
         static const size_t s_cPolyTextCache = 80;
         POLYTEXTW _pPolyText[s_cPolyTextCache];

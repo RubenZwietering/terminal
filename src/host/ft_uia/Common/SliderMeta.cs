@@ -6,12 +6,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests.Common
 {
-    using System;
-    using System.Globalization;
-
-    using WEX.Logging.Interop;
-    using OpenQA.Selenium.Appium;
     using OpenQA.Selenium;
+    using OpenQA.Selenium.Appium;
 
     public struct SliderMeta
     {

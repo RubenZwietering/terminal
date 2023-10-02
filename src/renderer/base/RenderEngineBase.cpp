@@ -35,9 +35,21 @@ HRESULT RenderEngineBase::NotifyNewText(const std::wstring_view /*newText*/) noe
     return S_FALSE;
 }
 
+HRESULT RenderEngineBase::PaintSixels(const til::rect& /*rect*/) noexcept
+{
+    return S_OK;
+}
+
 HRESULT RenderEngineBase::UpdateSoftFont(const std::span<const uint16_t> /*bitPattern*/,
                                          const til::size /*cellSize*/,
                                          const size_t /*centeringHint*/) noexcept
+{
+    return S_FALSE;
+}
+
+HRESULT RenderEngineBase::UpdateSixels(const std::span<const COLORREF> /*sixelPixels*/,
+                                       const til::size /*bufferSize*/,
+                                       const til::point /*coord*/) noexcept
 {
     return S_FALSE;
 }

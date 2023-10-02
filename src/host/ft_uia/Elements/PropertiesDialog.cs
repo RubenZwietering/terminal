@@ -6,11 +6,9 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests.Elements
 {
-    using System;
-
-    using OpenQA.Selenium.Appium;
-
     using Conhost.UIA.Tests.Common;
+    using OpenQA.Selenium.Appium;
+    using System;
 
     public class PropertiesDialog : IDisposable
     {

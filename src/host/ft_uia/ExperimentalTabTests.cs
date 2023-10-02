@@ -7,25 +7,16 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-    using System.Threading;
-
-    using Microsoft.Win32;
-
-    using WEX.Common.Managed;
-    using WEX.Logging.Interop;
-    using WEX.TestExecution;
-    using WEX.TestExecution.Markup;
-
     using Conhost.UIA.Tests.Common;
     using Conhost.UIA.Tests.Common.NativeMethods;
     using Conhost.UIA.Tests.Elements;
+    using Microsoft.Win32;
     using OpenQA.Selenium.Appium;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using WEX.TestExecution;
+    using WEX.TestExecution.Markup;
 
     [TestClass]
     public class ExperimentalTabTests

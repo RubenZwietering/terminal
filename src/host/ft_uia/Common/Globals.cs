@@ -6,8 +6,6 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests.Common
 {
-    using System;
-
     public static class Globals
     {
         public const int Timeout = 50; // in milliseconds

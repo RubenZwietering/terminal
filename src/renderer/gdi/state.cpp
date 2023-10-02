@@ -471,6 +471,74 @@ GdiEngine::~GdiEngine()
     return S_OK;
 }
 
+[[nodiscard]] HRESULT GdiEngine::UpdateSixels(const std::span<const COLORREF> sixelPixels,
+                                              const til::size bufferSize,
+                                              const til::point coord) noexcept
+{
+    // clear sixels
+    if (sixelPixels.empty())
+    {
+        RETURN_HR_IF_NULL(S_OK, _hdcSixel.get());
+
+        if (bufferSize == til::size{} && coord == til::point{})
+        {
+            return _ResizeSixelBitmap(bufferSize, {});
+        }
+
+        RETURN_HR_IF(E_FAIL, (coord.x < 0 || coord.y < 0 || bufferSize.width < 0 || bufferSize.height < 0));
+
+        const auto removeRect = (til::rect(coord, bufferSize).scale_up(_GetFontSize())
+                                & til::rect(_ptSixelBitmap, _szSixelBitmap)) - _ptSixelBitmap;
+
+        if (!removeRect.empty())
+        {
+            for (auto y = removeRect.top; y < removeRect.bottom; y++)
+            {
+                std::fill_n(_pSixelBits + y * _szSixelBitmap.width + removeRect.left,
+                            removeRect.width(),
+                            0x00ff00ff);
+            }
+        }
+
+        return S_OK;
+    }
+
+    RETURN_HR_IF(E_FAIL, (coord.x < 0 || coord.y < 0 || bufferSize.width <= 0 || bufferSize.height <= 0));
+
+    const auto sixelRect = til::rect{ coord * _GetFontSize(), bufferSize };
+    if (!_hdcSixel)
+    {
+        _ptSixelBitmap = sixelRect.origin();
+    }
+    const auto oldRect = til::rect{ _ptSixelBitmap, _szSixelBitmap };
+    const auto newRect = sixelRect | oldRect;
+    auto sixelCoord = sixelRect.origin() - oldRect.origin();
+
+    sixelCoord.x = std::max(0, sixelCoord.x);
+    sixelCoord.y = std::max(0, sixelCoord.y);
+
+    RETURN_IF_FAILED(_ResizeSixelBitmap(newRect.size(), oldRect.origin() - newRect.origin()));
+
+    _ptSixelBitmap = newRect.origin();
+
+    RETURN_HR_IF_NULL(E_FAIL, _pSixelBits);
+
+    if (sixelCoord.y < _szSixelBitmap.height && sixelCoord.x < _szSixelBitmap.width)
+    {
+        const auto maxHeight = std::min(sixelCoord.y + bufferSize.height, _szSixelBitmap.height);
+        const auto maxWidth = std::min(bufferSize.width, _szSixelBitmap.width - sixelCoord.x);
+
+        for (auto y = sixelCoord.y; y < maxHeight; y++)
+        {
+            memcpy(_pSixelBits + y * _szSixelBitmap.width + sixelCoord.x,
+                   sixelPixels.data() + (y - sixelCoord.y) * bufferSize.width,
+                   maxWidth * sizeof(COLORREF));
+        }
+    }
+
+    return S_OK;
+}
+
 // Routine Description:
 // - This method will modify the DPI we're using for scaling calculations.
 // Arguments:
@@ -741,6 +809,85 @@ std::vector<uint16_t> GdiEngine::_generateRasterBlockGlyphs(_Inout_opt_ til::siz
     fillScanLines(heightLowerHalf, glyphLineAll);
 
     return glyphData;
+}
+
+[[nodiscard]] HRESULT GdiEngine::_ResizeSixelBitmap(const til::size newSize, const til::point newOffset) noexcept
+{
+    if (newSize == _szSixelBitmap)
+    {
+        return S_OK;
+    }
+
+    if (newSize == til::size{})
+    {
+        _hdcSixel.reset();
+        _pSixelBits = nullptr;
+        _szSixelBitmap = {};
+        _ptSixelBitmap = {};
+
+        return S_OK;
+    }
+
+    if (!_hdcSixel)
+    {
+        _hdcSixel.reset(CreateCompatibleDC(_hdcMemoryContext));
+        RETURN_HR_IF_NULL(E_FAIL, _hdcSixel.get());
+    }
+
+    BYTE bmiArray[FIELD_OFFSET(BITMAPINFO, bmiColors) + (3 * sizeof(DWORD))];
+    ZeroMemory(&bmiArray, sizeof(bmiArray));
+    BITMAPINFO& bmi = *(LPBITMAPINFO)bmiArray;
+    BITMAPINFOHEADER& bmih = bmi.bmiHeader;
+    bmih.biSize = sizeof(BITMAPINFOHEADER);
+    bmih.biWidth = newSize.width;
+    bmih.biHeight = -newSize.height;
+    bmih.biPlanes = 1;
+    bmih.biBitCount = sizeof(COLORREF) * 8;
+    bmih.biCompression = BI_BITFIELDS; // BI_RGB ?
+    bmih.biSizeImage = 0;
+    bmih.biXPelsPerMeter = 0;
+    bmih.biYPelsPerMeter = 0;
+    bmih.biClrUsed = 0;
+    bmih.biClrImportant = 0;
+    LPDWORD pMasks = (LPDWORD)(bmiArray + bmih.biSize);
+    pMasks[0] = 0x0000ff; // Red
+    pMasks[1] = 0x00ff00; // Green
+    pMasks[2] = 0xff0000; // Blue
+
+    // CreateDIBitmap(_hdcSixel.get(), &bmih, CBM_INIT, sixelPixels.data(), &bmi, DIB_RGB_COLORS);
+
+    auto _pOldSixelBits = _pSixelBits;
+    wil::unique_hbitmap hbitmapNew(CreateDIBSection(_hdcSixel.get(), &bmi, DIB_RGB_COLORS, (void**)&_pSixelBits, nullptr, 0));
+    RETURN_HR_IF_NULL(E_FAIL, hbitmapNew.get());
+    RETURN_HR_IF_NULL(E_FAIL, _pSixelBits);
+
+    // ZeroMemory(_pSixelBits, newSize.width * newSize.height * sizeof(COLORREF));
+    std::fill_n(_pSixelBits, newSize.width * newSize.height, 0x00ff00ff);
+
+    if (_pOldSixelBits)
+    {
+        const auto maxHeight = std::min(newSize.height, _szSixelBitmap.height);
+        const auto maxWidth = std::min(newSize.width, _szSixelBitmap.width);
+
+        for (auto y = newOffset.y; y < newOffset.y + maxHeight; y++)
+        {
+            memmove(_pSixelBits + y * newSize.width + newOffset.x,
+                    _pOldSixelBits + (y - newOffset.y) * _szSixelBitmap.width,
+                    maxWidth * sizeof(COLORREF));
+        }
+    }
+
+    // hbitmapOld has the one pixel junk bitmap if we just created the dc.
+    wil::unique_hbitmap hbitmapOld(SelectBitmap(_hdcSixel.get(), hbitmapNew.get()));
+    RETURN_HR_IF_NULL(E_FAIL, hbitmapNew.get());
+
+    // We don't release hbitmapNew here and allow DestroyObject to be called on it,
+    // because the object is now referenced by _hdcSixel and will get deleted once the hdc is deleted.
+    // If we do release hbitmapNew here, the bitmap will leak once _hdcSixel gets deleted.
+    
+    _szSixelBitmap = newSize;
+
+    return S_OK;
 }
 
 // Routine Description:

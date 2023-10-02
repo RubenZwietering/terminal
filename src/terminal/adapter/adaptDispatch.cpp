@@ -3075,6 +3075,8 @@ bool AdaptDispatch::HardReset()
     // Clear the soft font in the renderer and delete the font buffer.
     _renderer.UpdateSoftFont({}, {}, false);
     _fontBuffer = nullptr;
+    // Delete the sixel buffer, the buffer in the renderer is already deleted at EraseInDisplay
+    _sixelBuffer = nullptr;
 
     // Reset internal modes to their initial state
     _modes = {};
@@ -3249,6 +3251,8 @@ bool AdaptDispatch::_EraseAll()
     // Clear any marks that remain below the start of the
     textBuffer.ClearMarksInRange(til::point{ 0, newViewportTop },
                                  til::point{ bufferSize.Width(), bufferSize.Height() });
+
+    _renderer.UpdateSixels({}, {}, {});
 
     // GH#5683 - If this succeeded, but we're in a conpty, return `false` to
     // make the state machine propagate this ED sequence to the connected
@@ -4160,6 +4164,47 @@ ITermDispatch::StringHandler AdaptDispatch::RequestSetting()
             }
             return true;
         }
+    };
+}
+
+ITermDispatch::StringHandler AdaptDispatch::SixelMode(const VTInt pixelAspectRatio, const VTInt backgroundColorOptions, const VTInt horizontalGridSize)
+{
+    // The sixel buffer is created on demand.
+    if (!_sixelBuffer)
+    {
+        _sixelBuffer = std::make_unique<SixelBuffer>();
+    }
+
+    bool success = true;
+    success = success && _sixelBuffer->SetPixelAspectRatio(pixelAspectRatio);
+    success = success && _sixelBuffer->SetBackgroundColorOptions(backgroundColorOptions);
+    success = success && _sixelBuffer->SetHorizontalGridSize(horizontalGridSize);
+    success = success && _sixelBuffer->SetPalette({ _renderSettings.GetColorTable().data(), std::min(256llu, _renderSettings.GetColorTable().size()) });
+    success = success && _sixelBuffer->SetBackgroundColor(_renderSettings.GetColorAlias(ColorAlias::DefaultBackground));
+
+    if (!success)
+    {
+        return nullptr;
+    }
+
+    if (_api.IsConsolePty())
+    {
+        return _CreatePassthroughHandler();
+    }
+
+    return [=](const auto ch) {
+        if (ch != AsciiChars::ESC)
+        {
+            _sixelBuffer->AddData(ch);
+        }
+        else if (_sixelBuffer->FinalizeData())
+        {
+            const auto sixels = _sixelBuffer->GetPixels();
+            const auto size = _sixelBuffer->GetSize();
+            const auto cursorPosition = _api.GetTextBuffer().GetCursor().GetPosition();
+            _renderer.UpdateSixels(sixels, size, cursorPosition);
+        }
+        return true;
     };
 }
 

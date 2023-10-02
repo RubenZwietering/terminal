@@ -481,6 +481,9 @@ void TextBuffer::Write(til::CoordType row, const TextAttribute& attributes, RowW
     auto& r = GetMutableRowByOffset(row);
     r.ReplaceText(state);
     r.ReplaceAttributes(state.columnBegin, state.columnEnd, attributes);
+
+    ClearSixels(Viewport::FromExclusive({ state.columnBegin, row, state.columnEnd, row + 1 }));
+
     TriggerRedraw(Viewport::FromExclusive({ state.columnBeginDirty, row, state.columnEndDirty, row + 1 }));
 }
 
@@ -1166,6 +1169,14 @@ void TextBuffer::TriggerNewTextNotification(const std::wstring_view newText)
     if (_isActiveBuffer)
     {
         _renderer.TriggerNewTextNotification(newText);
+    }
+}
+
+void TextBuffer::ClearSixels(const Microsoft::Console::Types::Viewport viewport)
+{
+    if (_isActiveBuffer)
+    {
+        _renderer.UpdateSixels({}, viewport.Dimensions(), viewport.Origin());
     }
 }
 

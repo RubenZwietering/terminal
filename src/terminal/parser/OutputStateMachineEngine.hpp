@@ -176,6 +176,7 @@ namespace Microsoft::Console::VirtualTerminal
             DECRSTS_RestoreTerminalState = VTID("$p"),
             DECRQSS_RequestSetting = VTID("$q"),
             DECRSPS_RestorePresentationState = VTID("$t"),
+            DECSIXEL_SixelMode = VTID("q"),
         };
 
         enum Vt52ActionCodes : uint64_t

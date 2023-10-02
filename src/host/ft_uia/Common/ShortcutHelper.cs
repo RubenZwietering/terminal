@@ -6,17 +6,12 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests.Common
 {
+    using Conhost.UIA.Tests.Common.NativeMethods;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Runtime.InteropServices;
-
-    using WEX.Common.Managed;
-    using WEX.Logging.Interop;
     using WEX.TestExecution;
-    using WEX.TestExecution.Markup;
-
-    using Conhost.UIA.Tests.Common.NativeMethods;
 
     public class ShortcutHelper : IDisposable
     {

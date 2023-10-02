@@ -6,29 +6,22 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests.Elements
 {
-    using System;
-    using System.Diagnostics;
-    using System.IO;
-
     using Conhost.UIA.Tests.Common;
     using Conhost.UIA.Tests.Common.NativeMethods;
-
-    using OpenQA.Selenium;
-    using OpenQA.Selenium.Remote;
     using OpenQA.Selenium.Appium;
     using OpenQA.Selenium.Appium.iOS;
     using OpenQA.Selenium.Interactions;
-
+    using OpenQA.Selenium.Remote;
+    using System;
+    using System.Drawing;
+    using System.IO;
+    using System.Runtime.InteropServices;
+    using System.Security.Principal;
+    using System.Text;
+    using System.Threading;
     using WEX.Logging.Interop;
     using WEX.TestExecution;
     using WEX.TestExecution.Markup;
-
-    using System.Runtime.InteropServices;
-    using System.Drawing;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Threading;
-    using System.Security.Principal;
 
     public class CmdApp : IDisposable
     {

@@ -6,11 +6,10 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests.Elements
 {
+    using Conhost.UIA.Tests.Common;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-
-    using Conhost.UIA.Tests.Common;
 
     public class Tabs : IDisposable
     {

@@ -6,12 +6,10 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests.Elements
 {
-    using System;
-    using System.Collections.Generic;
-
     using Conhost.UIA.Tests.Common;
-    using NativeMethods = Conhost.UIA.Tests.Common.NativeMethods;
     using OpenQA.Selenium.Appium;
+    using System.Collections.Generic;
+    using NativeMethods = Conhost.UIA.Tests.Common.NativeMethods;
 
     public class ColorsTab : TabBase
     {

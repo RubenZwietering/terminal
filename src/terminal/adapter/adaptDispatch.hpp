@@ -17,6 +17,7 @@ Author(s):
 #include "termDispatch.hpp"
 #include "ITerminalApi.hpp"
 #include "FontBuffer.hpp"
+#include "SixelBuffer.hpp"
 #include "MacroBuffer.hpp"
 #include "terminalOutput.hpp"
 #include "../input/terminalInput.hpp"
@@ -159,6 +160,8 @@ namespace Microsoft::Console::VirtualTerminal
 
         StringHandler RequestSetting() override; // DECRQSS
 
+        StringHandler SixelMode(const VTInt pixelAspectRatio, const VTInt backgroundColorOptions, const VTInt horizontalGridSize) override; // DECSIXEL
+
         bool RequestPresentationStateReport(const DispatchTypes::PresentationReportFormat format) override; // DECRQPSR
         StringHandler RestorePresentationState(const DispatchTypes::PresentationReportFormat format) override; // DECRSPS
 
@@ -281,6 +284,7 @@ namespace Microsoft::Console::VirtualTerminal
         TerminalOutput _termOutput;
         std::unique_ptr<FontBuffer> _fontBuffer;
         std::shared_ptr<MacroBuffer> _macroBuffer;
+        std::unique_ptr<SixelBuffer> _sixelBuffer;
         std::optional<unsigned int> _initialCodePage;
 
         // We have two instances of the saved cursor state, because we need

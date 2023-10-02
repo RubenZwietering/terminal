@@ -155,6 +155,11 @@ constexpr HRESULT vec2_narrow(U x, U y, vec2<T>& out) noexcept
     return S_OK;
 }
 
+[[nodiscard]] HRESULT AtlasEngine::PaintSixels(const til::rect& /*rect*/) noexcept
+{
+    return S_OK;
+}
+
 [[nodiscard]] HRESULT AtlasEngine::UpdateFont(const FontInfoDesired& fontInfoDesired, _Out_ FontInfo& fontInfo) noexcept
 {
     return UpdateFont(fontInfoDesired, fontInfo, {}, {});
@@ -166,6 +171,11 @@ constexpr HRESULT vec2_narrow(U x, U y, vec2<T>& out) noexcept
     softFont->softFontPattern.assign(bitPattern.begin(), bitPattern.end());
     softFont->softFontCellSize.width = std::max(0, cellSize.width);
     softFont->softFontCellSize.height = std::max(0, cellSize.height);
+    return S_OK;
+}
+
+[[nodiscard]] HRESULT AtlasEngine::UpdateSixels(const std::span<const COLORREF> /*sixelPixels*/, const til::size /*bufferSize*/, const til::point /*coord*/) noexcept
+{
     return S_OK;
 }
 

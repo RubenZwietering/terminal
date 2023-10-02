@@ -6,7 +6,6 @@
 //----------------------------------------------------------------------------------------------------------------------
 namespace Conhost.UIA.Tests.Common
 {
-    using System;
     using System.Globalization;
 
     using WEX.Logging.Interop;

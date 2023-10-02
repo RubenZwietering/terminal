@@ -9,9 +9,6 @@ namespace Conhost.UIA.Tests.Elements
 {
     using Common.NativeMethods;
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using WEX.Logging.Interop;
